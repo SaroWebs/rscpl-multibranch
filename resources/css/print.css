@@ -1,0 +1,84 @@
+.section {
+    height: 50vh;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+    page-break-inside: avoid;
+}
+
+.section-header,
+.section-footer {
+    background-color: #fcfcfc;
+    padding: 5px;
+    height: 20vh;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+
+thead {
+    display: table-header-group; /* Repeat the header on each printed page */
+}
+
+tbody {
+    display: table-row-group;
+}
+
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    .page {
+        page-break-after: always;
+    }
+
+    .section {
+        height: 50vh;
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 10px;
+        page-break-inside: avoid;
+    }
+
+    .section-header,
+    .section-footer {
+        background-color: #ffd7d7;
+        padding: 5px;
+        height: 20vh;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    table,
+    th,
+    td {
+        border: 1px solid black;
+    }
+
+    th,
+    td {
+        padding: 2px;
+        text-align: left;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tbody {
+        display: table-row-group;
+    }
+}
