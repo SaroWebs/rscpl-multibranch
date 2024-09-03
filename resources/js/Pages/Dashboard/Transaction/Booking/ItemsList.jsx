@@ -1,15 +1,16 @@
 import { Link } from '@inertiajs/react';
 import { Button } from '@mui/material';
-import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, EyeIcon, ImageIcon, PrinterIcon, XIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, EyeIcon, ImageIcon, PencilIcon, PrinterIcon, XIcon } from 'lucide-react';
 import { ConfirmDialog } from 'primereact/confirmdialog';
 import React, { useEffect, useState } from 'react'
 import AddNewItem from './AddNewItem';
 import BookingStatus from './BookingStatus';
 import { Dialog } from 'primereact/dialog';
+import EditBookingItem from './EditBookingItem';
 
 
 const ItemsList = (props) => {
-    const { bookings, reload, toast } = props;
+    const { bookings, reload, toast, manifests, items, locations, parties } = props;
     const [searchTxt, setSearchTxt] = useState('');
     const [perPage, setPerPage] = useState(10);
     const [delivCount, setDelivCount] = useState(0);
@@ -30,9 +31,9 @@ const ItemsList = (props) => {
             bookings.data.filter(bk => {
                 x = x + bk.statuses.filter(st => st.status == 'delivered');
                 setDelivCount(x.length);
-                console.log(x.length);
             })
         }
+        console.log(bookings);
     }, [bookings]);
 
 
@@ -132,6 +133,7 @@ const ItemsList = (props) => {
                                                                 <span className='uppercase'>{activeStatus.status}</span>
                                                             }
                                                         </td>
+                                                        
                                                         {activeStatus && (activeStatus.status == 'delivered') ? (
                                                             <td className='text-center'>
                                                                 <DeliveryProof booking={booking} status={activeStatus} />
@@ -143,7 +145,30 @@ const ItemsList = (props) => {
                                                                 </button>
                                                             </td>
                                                         }
+                                                        
                                                         <td className="text-center m-2 flex gap-2">
+                                                            {activeStatus && (activeStatus.status == 'pending') ? (
+                                                                <EditBookingItem 
+                                                                    booking={booking} 
+                                                                    reload={reload} 
+                                                                    toast={toast}
+                                                                    manifests={manifests}
+                                                                    items={items}
+                                                                    locations={locations}
+                                                                    parties={parties}
+                                                                />
+                                                                
+                                                            ) :
+                                                            <Button
+                                                                color="primary"
+                                                                variant="outlined"
+                                                                disabled
+                                                                startIcon={<PencilIcon className='w-4 h-4'/>}
+                                                                aria-label="Edit">
+                                                                Edit
+                                                            </Button>
+                                                                
+                                                            }
                                                             <Button
                                                                 color="primary"
                                                                 variant="outlined"

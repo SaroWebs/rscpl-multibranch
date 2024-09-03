@@ -315,7 +315,81 @@ class BookingController extends Controller
 
     public function update(Request $request, Booking $booking)
     {
-        //
+        $request->validate([
+            'bookingData' => 'required|array',
+            'bookingData.manifest_id' => 'required|integer',
+            'bookingData.cn_no' => 'required|string',
+            'bookingData.cewb' => 'nullable|string',
+            'bookingData.cewb_expires' => 'nullable|date',
+            'bookingData.consignor' => 'required|integer',
+            'bookingData.consignee' => 'required|integer',
+            'bookingData.amount' => 'required|numeric',
+            'bookingData.remarks' => 'nullable|string',
+            'bookingItemsData' => 'required|array',
+            'bookingItemsData.*.invoice_no' => 'required|string',
+            'bookingItemsData.*.invoice_date' => 'required|date',
+            'bookingItemsData.*.amount' => 'required|numeric',
+            'bookingItemsData.*.weight' => 'nullable|numeric',
+            'bookingItemsData.*.itemsInfo' => 'required|array',
+            'bookingItemsData.*.itemsInfo.*.item_name' => 'required|string',
+            'bookingItemsData.*.itemsInfo.*.quantity' => 'required|integer',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $booking->update([
+                'manifest_id' => $request->bookingData['manifest_id'],
+                'cn_no' => $request->bookingData['cn_no'],
+                'cewb' => $request->bookingData['cewb'],
+                'cewb_expires' => $request->bookingData['cewb_expires'] ? Carbon::parse($request->bookingData['cewb_expires'])->format('Y-m-d') : null,
+                'consignor' => $request->bookingData['consignor'],
+                'consignee' => $request->bookingData['consignee'],
+                'amount' => $request->bookingData['amount'],
+                'remarks' => $request->bookingData['remarks'],
+                'ship_to_party' => $request->bookingData['ship_to_party'] ? 1 : 0,
+                'party_location' => $request->bookingData['ship_to_party'] ? $request->bookingData['party_location'] : '',
+            ]);
+
+            // Delete existing booking items and quantities
+            $booking->items()->each(function ($item) {
+                $item->item_quantities()->delete();
+                $item->delete();
+            });
+
+            // Create new booking items and quantities
+            foreach ($request->bookingItemsData as $itemData) {
+                $bookingItem = $booking->items()->create([
+                    'invoice_no' => $itemData['invoice_no'],
+                    'invoice_date' => Carbon::parse($itemData['invoice_date'])->format('Y-m-d'),
+                    'amount' => $itemData['amount'],
+                    'weight' => $itemData['weight'],
+                ]);
+
+                foreach ($itemData['itemsInfo'] as $itemInfo) {
+                    $bookingItem->item_quantities()->create([
+                        'item_name' => $itemInfo['item_name'],
+                        'quantity' => $itemInfo['quantity'],
+                    ]);
+                }
+            }
+
+            $user = Auth::user();
+            ActivityLog::create([
+                'title' => 'Booking Updated',
+                'activity' => 'Consignment (CN no : ' . $booking->cn_no . ') has been updated!',
+                'user_id' => $user->id,
+                'branch_id' => $user->branch->id,
+                'created_at' => now()
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Booking updated successfully'], 200);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['error' => $th->getMessage()], 500);
+        }
     }
 
     public function update_status(Request $request, Booking $booking)

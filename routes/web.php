@@ -192,4 +192,6 @@ Route::controller(ActivityLogController::class)->group(function () {
     Route::get('/data/activities/user/{user}', 'get_user_items');
 });
 
+Route::put('/data/booking/update/{booking}', [BookingController::class, 'update']);
+
 require __DIR__ . '/auth.php';
