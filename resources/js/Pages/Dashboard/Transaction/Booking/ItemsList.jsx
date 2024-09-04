@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
-import { Button } from '@mui/material';
-import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, EyeIcon, ImageIcon, PencilIcon, PrinterIcon, XIcon } from 'lucide-react';
-import { ConfirmDialog } from 'primereact/confirmdialog';
+import { IconButton, Tooltip } from '@mui/material';
+import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, EyeIcon, ImageIcon, PencilIcon, PrinterIcon, Trash2Icon } from 'lucide-react';
+import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import React, { useEffect, useState } from 'react'
 import AddNewItem from './AddNewItem';
 import BookingStatus from './BookingStatus';
@@ -42,7 +42,26 @@ const ItemsList = (props) => {
         window.open(printUrl, '_blank', 'width=1200,height=1200');
     };
 
+    const handleDelete = (booking) => {
+        confirmDialog({
+            message: 'Are you sure you want to delete this booking?',
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptClassName: 'p-button-danger',
+            accept: () => deleteBooking(booking.id),
+        });
+    };
 
+    const deleteBooking = async (id) => {
+        try {
+            await axios.delete(`/data/booking/delete/${id}`);
+            toast.current.show({ severity: 'success', summary: 'Success', detail: 'Booking deleted successfully', life: 3000 });
+            reload();
+        } catch (error) {
+            console.error('Error deleting booking:', error);
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'Failed to delete booking', life: 3000 });
+        }
+    };
 
     const privilege = props.auth.user.role.privilege_index;
 
@@ -94,7 +113,7 @@ const ItemsList = (props) => {
                                                 {delivCount > 0 &&
                                                     <th className='text-center min-w-[60px]'>POD</th>
                                                 }
-                                                <th></th>
+                                                <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -148,45 +167,56 @@ const ItemsList = (props) => {
                                                         
                                                         <td className="text-center m-2 flex gap-2">
                                                             {activeStatus && (activeStatus.status == 'pending') ? (
-                                                                <EditBookingItem 
-                                                                    booking={booking} 
-                                                                    reload={reload} 
-                                                                    toast={toast}
-                                                                    manifests={manifests}
-                                                                    items={items}
-                                                                    locations={locations}
-                                                                    parties={parties}
-                                                                />
-                                                                
+                                                                <>
+                                                                    <EditBookingItem 
+                                                                        booking={booking} 
+                                                                        reload={reload} 
+                                                                        toast={toast}
+                                                                        manifests={manifests}
+                                                                        items={items}
+                                                                        locations={locations}
+                                                                        parties={parties}
+                                                                    />
+                                                                    <Tooltip title="Delete">
+                                                                        <IconButton
+                                                                            color="error"
+                                                                            onClick={() => handleDelete(booking)}
+                                                                            aria-label="Delete">
+                                                                            <Trash2Icon className='w-4 h-4'/>
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                </>
                                                             ) :
-                                                            <Button
-                                                                color="primary"
-                                                                variant="outlined"
-                                                                disabled
-                                                                startIcon={<PencilIcon className='w-4 h-4'/>}
-                                                                aria-label="Edit">
-                                                                Edit
-                                                            </Button>
+                                                            <Tooltip title="Edit (Disabled)">
+                                                                <span>
+                                                                    <IconButton
+                                                                        color="primary"
+                                                                        disabled
+                                                                        aria-label="Edit">
+                                                                        <PencilIcon className='w-4 h-4'/>
+                                                                    </IconButton>
+                                                                </span>
+                                                            </Tooltip>
                                                                 
                                                             }
-                                                            <Button
-                                                                color="primary"
-                                                                variant="outlined"
-                                                                onClick={() => handlePrint(booking.id)}
-                                                                startIcon={<PrinterIcon className='h-4 w-4' />}
-                                                                aria-label="Print">
-                                                                Print
-                                                            </Button>
+                                                            <Tooltip title="Print">
+                                                                <IconButton
+                                                                    color="primary"
+                                                                    onClick={() => handlePrint(booking.id)}
+                                                                    aria-label="Print">
+                                                                    <PrinterIcon className='h-4 w-4' />
+                                                                </IconButton>
+                                                            </Tooltip>
 
-                                                            <Link href={`/booking/track?cn_no=${booking.cn_no}`}>
-                                                                <Button
+                                                            <Tooltip title="Track Booking">
+                                                                <IconButton
                                                                     color="secondary"
-                                                                    variant="outlined"
-                                                                    startIcon={<Crosshair className='h-4 w-4' />}
+                                                                    component={Link}
+                                                                    href={`/booking/track?cn_no=${booking.cn_no}`}
                                                                     aria-label="Track booking">
-                                                                    Track
-                                                                </Button>
-                                                            </Link>
+                                                                    <Crosshair className='h-4 w-4' />
+                                                                </IconButton>
+                                                            </Tooltip>
                                                         </td>
                                                     </tr>
                                                 )
@@ -334,29 +364,4 @@ const FilterBooking = (props) => {
             </div>
         </div>
     );
-}
-
-
-const SelectParty = ({ id, cne }) => {
-    const [party, setParty] = useState(null);
-
-    const loadParty = () => {
-        axios.get(`/master/data/party/${id}`).then(res => setParty(res.data)).catch(err => console.log(err.message));
-    }
-
-    useEffect(() => {
-        loadParty();
-    }, [id])
-    if (!party) return null;
-
-    return (
-        <div
-            onClick={() => setCne(cne === id ? '' : id)}
-            key={id}
-            className={`cursor-pointer rounded-full p-2 px-4 flex justify-between items-center my-1 ${id === cne ? 'text-teal-50 bg-teal-600' : 'bg-white hover:bg-gray-200'}`}
-        >
-            <span>{party.name}</span>
-            {id === cne && <CircleCheckBig className='w-4 h-4' />}
-        </div>
-    )
 }

@@ -3,45 +3,36 @@ import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import axios from 'axios';
-import { Button, IconButton } from '@mui/material';
+import { Button, IconButton, Tooltip } from '@mui/material';
 import { PencilIcon, PlusIcon, XIcon } from 'lucide-react';
 
-const EditBookingItem = ({ booking, reload, toast, manifests, items, locations, parties }) => {
+const EditBookingItem = ({ booking, reload, toast, items }) => {
     const [openDialog, setOpenDialog] = useState(false);
     const [itemList, setItemList] = useState([]);
-    const [formInfo, setFormInfo] = useState({
-        manifest_id: '',
-        cn_no: '',
-        cewb: '',
-        cewb_expires: '',
-        consignor: '',
-        consignee: '',
-        ship_to_party: 0,
-        party_location: '',
-        amount: '',
-        remarks: '',
-    });
-
     const [processedData, setProcessedData] = useState({
         totalWeight: 0,
         totalQty: 0,
         totalAmount: 0
     });
 
+
+    // set processed data
+    useEffect(() => {
+        if (itemList.length > 0) {
+            const totalWeight = itemList.reduce((sum, item) => sum + parseFloat(item.weight || 0), 0);
+            const totalQty = itemList.reduce((sum, item) => sum + item.itemsInfo.reduce((itemSum, info) => itemSum + parseInt(info.qty || 0), 0), 0);
+            const totalAmount = itemList.reduce((sum, item) => sum + parseFloat(item.amount || 0), 0);
+
+            setProcessedData({
+                totalWeight: totalWeight.toFixed(2),
+                totalQty,
+                totalAmount: totalAmount.toFixed(2)
+            });
+        }
+    }, [itemList]);
+
     useEffect(() => {
         if (booking) {
-            setFormInfo({
-                manifest_id: booking.manifest_id,
-                cn_no: booking.cn_no,
-                cewb: booking.cewb,
-                cewb_expires: booking.cewb_expires ? new Date(booking.cewb_expires) : '',
-                consignor: booking.consignor,
-                consignee: booking.consignee,
-                ship_to_party: booking.ship_to_party,
-                party_location: booking.party_location,
-                amount: booking.amount,
-                remarks: booking.remarks,
-            });
             setItemList(booking.items.map(item => ({
                 invoice_no: item.invoice_no,
                 invoice_date: new Date(item.invoice_date),
@@ -54,18 +45,6 @@ const EditBookingItem = ({ booking, reload, toast, manifests, items, locations, 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const bookingData = {
-            manifest_id: formInfo.manifest_id,
-            cn_no: formInfo.cn_no,
-            cewb: formInfo.cewb,
-            cewb_expires: formInfo.cewb_expires,
-            consignor: formInfo.consignor,
-            consignee: formInfo.consignee,
-            amount: processedData.totalAmount,
-            remarks: formInfo.remarks,
-            ship_to_party: formInfo.ship_to_party,
-            party_location: formInfo.ship_to_party ? formInfo.party_location : ''
-        };
 
         const bookingItemsData = itemList.map(item => ({
             invoice_no: item.invoice_no,
@@ -78,12 +57,12 @@ const EditBookingItem = ({ booking, reload, toast, manifests, items, locations, 
             }))
         }));
 
-        if (bookingData && bookingItemsData.length > 0) {
-            axios.put(`/data/booking/update/${booking.id}`, { bookingData, bookingItemsData })
+        if (bookingItemsData.length > 0) {
+            axios.put(`/data/booking/update/${booking.id}`, { bookingItemsData })
                 .then(res => {
                     reload();
                     setOpenDialog(false);
-                    toast.current.show({ label: 'Success', severity: 'success', detail: 'Booking updated successfully' });
+                    toast.current.show({ label: 'Success', severity: 'success', detail: 'Booking items updated successfully' });
                 })
                 .catch(err => {
                     console.log(err.message);
@@ -96,150 +75,60 @@ const EditBookingItem = ({ booking, reload, toast, manifests, items, locations, 
 
     return (
         <>
-            <Button
-                color="primary"
-                variant="outlined"
-                onClick={() => setOpenDialog(true)}
-                startIcon={<PencilIcon className='w-4 h-4' />}
-                aria-label="Edit">
-                Edit
-            </Button>
-            <Dialog visible={openDialog} header={'Edit Booking'} modal onHide={() => setOpenDialog(false)} className="rounded-md m-4 w-full md:w-2/3 p-4 bg-white">
-                <form onSubmit={handleSubmit} className="space-y-4 p-4">
-                    <div className="items w-full border p-4 rounded-lg shadow-md">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 mb-4">
-                            <div className={`col-span-3 flex flex-col`}>
-                                <label htmlFor="mani_no" className="mb-2 text-xs font-medium text-gray-700">Lorry Manifest:</label>
-                                <select
-                                    name="manifest_id"
-                                    id="mani_no"
-                                    // value={formInfo.manifest_id}
-                                    defaultValue={formInfo.manifest_id}
-                                    onChange={(e) => setFormInfo({ ...formInfo, manifest_id: e.target.value })}
-                                    className="border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2 text-xs"
-                                >
-                                    <option value="" disabled>Select Manifest</option>
-                                    {manifests && manifests.map(mani => (
-                                        <option key={mani.id} value={mani.id}>
-                                            {mani.lorry?.lorry_number + '-' + new Date(mani.trip_date).toLocaleDateString('en-GB')}
-                                            ({mani.manifest_no})
-                                        </option>
-                                    ))}
-                                </select>
+            <Tooltip title="Edit">
+                <IconButton
+                    color="primary"
+                    onClick={() => setOpenDialog(true)}
+                    aria-label="Edit">
+                    <PencilIcon className='h-4 w-4' />
+                </IconButton>
+            </Tooltip>
+            <Dialog visible={openDialog} header={'Edit Booking Items'} modal onHide={() => setOpenDialog(false)} className="rounded-md m-4 w-full md:w-2/3 p-4 bg-white">
+                <div className="flex flex-col">
+                    <div className="mb-4 p-4 bg-gray-100 rounded-md">
+                        <h3 className="text-lg font-semibold mb-2">Booking Details</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p><span className="font-medium">Consignment No:</span> {booking.cn_no}</p>
+                                <p><span className="font-medium">Consignor:</span> {booking.consignor?.name}</p>
+                                <p><span className="font-medium">From:</span> {booking.consignor?.location.name}</p>
                             </div>
-                            <div className="flex flex-col col-span-2">
-                                <label htmlFor="cn_no" className="mb-2 text-xs font-medium text-gray-700">CN no: <span className="text-red-700">*</span> </label>
-                                <input type="text"
-                                    name="cn_no"
-                                    id="cn_no"
-                                    value={formInfo.cn_no}
-                                    onChange={(e) => setFormInfo({ ...formInfo, cn_no: e.target.value })}
-                                    className="bg-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2 text-xs"
-                                />
-                            </div>
-                            <div className="flex flex-col">
-                                <label htmlFor="cewb" className="mb-2 text-xs font-medium text-gray-700">CEWB:</label>
-                                <input type="text"
-                                    name="cewb"
-                                    id="cewb"
-                                    value={formInfo.cewb}
-                                    onChange={(e) => setFormInfo({ ...formInfo, cewb: e.target.value })}
-                                    className="border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2 text-xs"
-                                />
-                            </div>
-
-                            <div className={`col-span-3 flex flex-col `}>
-                                <label htmlFor="consignor" className="mb-2 text-xs font-medium text-gray-700">Consignor:</label>
-                                <select
-                                    name="consignor"
-                                    id="consignor"
-                                    value={formInfo.consignor}
-                                    onChange={(e) => setFormInfo({ ...formInfo, consignor: e.target.value })}
-                                    className="border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2 text-xs"
-                                >
-                                    <option value="" disabled>Select Consignor</option>
-                                    {parties && parties.map(party => {
-                                        if (party.id == formInfo.consignee) return null;
-                                        if (!party.is_consignor) return null;
-                                        return (<option key={party.id} value={party.id}>{party.name}</option>);
-                                    })}
-                                </select>
-                            </div>
-
-                            <div className={`col-span-3 flex flex-col `}>
-                                <label htmlFor="consignee" className="mb-2 text-xs font-medium text-gray-700">Consignee:</label>
-                                <select
-                                    name="consignee"
-                                    id="consignee"
-                                    value={formInfo.consignee}
-                                    onChange={(e) => setFormInfo({ ...formInfo, consignee: e.target.value })}
-                                    className="border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2 text-xs"
-                                >
-                                    <option value="" disabled>Select Consignee</option>
-                                    {parties && parties.map(party => {
-                                        if (party.id == formInfo.consignor) return null;
-                                        if (party.is_consignor) return null;
-                                        return (<option key={party.id} value={party.id}>{party.name}</option>);
-                                    })}
-                                </select>
+                            <div>
+                                <p><span className="font-medium">Booking Date:</span> {new Date(booking.manifest?.trip_date).toLocaleDateString()}</p>
+                                <p><span className="font-medium">Consignee:</span> {booking.consignee?.name}</p>
+                                <p><span className="font-medium">To:</span> {booking.consignee?.location.name}</p>
                             </div>
                         </div>
-
-                        <div className="flex flex-col my-3">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    name="ship_to_party"
-                                    id="ship_to_party"
-                                    checked={formInfo.ship_to_party}
-                                    onChange={(e) => setFormInfo({ ...formInfo, ship_to_party: e.target.checked })}
-                                    className=''
-                                />
-                                <label className="cursor-pointer text-xs" htmlFor="ship_to_party">Ship to party?</label>
-                            </div>
-                        </div>
-
-                        {formInfo.ship_to_party ? (
-                            <input
-                                type="text"
-                                name="party_location"
-                                id="party_location"
-                                placeholder='Party Location'
-                                required
-                                value={formInfo.party_location}
-                                onChange={(e) => setFormInfo({ ...formInfo, party_location: e.target.value })}
-                                className="border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2 text-xs"
-                            />
-                        ) : ''}
                     </div>
-
-                    <BookingItems
-                        items={items}
-                        itemList={itemList}
-                        setItemList={setItemList}
-                        setProcessedData={setProcessedData}
-                        toast={toast}
-                    />
-
-                    {itemList && itemList.length > 0 && (
-                        <>
-                            <div className="flex justify-end items-end flex-col gap-2">
-                                <div className="border rounded-md pt-0 min-w-[200px] overflow-hidden">
-                                    <h4 className="text-md font-semibold px-4 py-2 bg-gray-700 text-white">Summary</h4>
-                                    <div className="p-4">
-                                        <h6 className='py-0 my-0 text-sm'>Weight: {processedData.totalWeight + ' KG'} </h6>
-                                        <h6 className='py-0 my-0 text-sm'>Quantity: {processedData.totalQty}</h6>
-                                        <h6 className='py-0 my-0 text-sm'>Amount: {'Rs ' + processedData.totalAmount}</h6>
+                    <form onSubmit={handleSubmit} className="space-y-4 p-4">
+                        <BookingItems
+                            items={items}
+                            itemList={itemList}
+                            setItemList={setItemList}
+                            setProcessedData={setProcessedData}
+                            toast={toast}
+                        />
+                        <hr />
+                        {itemList && itemList.length > 0 && (
+                            <>
+                                <div className="flex justify-end items-end flex-col gap-2">
+                                    <div className="border rounded-md pt-0 min-w-[200px] overflow-hidden">
+                                        <h4 className="text-md font-semibold px-4 py-2 bg-gray-700 text-white">Summary</h4>
+                                        <div className="p-4">
+                                            <h6 className='py-0 my-0 text-sm'>Weight: {processedData.totalWeight + ' KG'} </h6>
+                                            <h6 className='py-0 my-0 text-sm'>Quantity: {processedData.totalQty}</h6>
+                                            <h6 className='py-0 my-0 text-sm'>Amount: {'Rs ' + processedData.totalAmount}</h6>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <button type="submit" className="px-4 py-2 font-semibold text-white bg-teal-500 rounded-md shadow-sm hover:bg-teal-600">
-                                    Update Booking
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </form>
+                                    <button type="submit" className="px-4 py-2 font-semibold text-white bg-teal-500 rounded-md shadow-sm hover:bg-teal-600">
+                                        Update Booking Items
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </form>
+                </div>
             </Dialog>
         </>
     );

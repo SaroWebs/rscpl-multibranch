@@ -316,39 +316,23 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking)
     {
         $request->validate([
-            'bookingData' => 'required|array',
-            'bookingData.manifest_id' => 'required|integer',
-            'bookingData.cn_no' => 'required|string',
-            'bookingData.cewb' => 'nullable|string',
-            'bookingData.cewb_expires' => 'nullable|date',
-            'bookingData.consignor' => 'required|integer',
-            'bookingData.consignee' => 'required|integer',
-            'bookingData.amount' => 'required|numeric',
-            'bookingData.remarks' => 'nullable|string',
             'bookingItemsData' => 'required|array',
             'bookingItemsData.*.invoice_no' => 'required|string',
             'bookingItemsData.*.invoice_date' => 'required|date',
             'bookingItemsData.*.amount' => 'required|numeric',
             'bookingItemsData.*.weight' => 'nullable|numeric',
-            'bookingItemsData.*.itemsInfo' => 'required|array',
-            'bookingItemsData.*.itemsInfo.*.item_name' => 'required|string',
-            'bookingItemsData.*.itemsInfo.*.quantity' => 'required|integer',
+            'bookingItemsData.*.item_quantities' => 'required|array',
+            'bookingItemsData.*.item_quantities.*.item_name' => 'required|string',
+            'bookingItemsData.*.item_quantities.*.quantity' => 'required|integer',
         ]);
 
         try {
             DB::beginTransaction();
 
+            // Update only the total amount
+            $totalAmount = collect($request->bookingItemsData)->sum('amount');
             $booking->update([
-                'manifest_id' => $request->bookingData['manifest_id'],
-                'cn_no' => $request->bookingData['cn_no'],
-                'cewb' => $request->bookingData['cewb'],
-                'cewb_expires' => $request->bookingData['cewb_expires'] ? Carbon::parse($request->bookingData['cewb_expires'])->format('Y-m-d') : null,
-                'consignor' => $request->bookingData['consignor'],
-                'consignee' => $request->bookingData['consignee'],
-                'amount' => $request->bookingData['amount'],
-                'remarks' => $request->bookingData['remarks'],
-                'ship_to_party' => $request->bookingData['ship_to_party'] ? 1 : 0,
-                'party_location' => $request->bookingData['ship_to_party'] ? $request->bookingData['party_location'] : '',
+                'amount' => $totalAmount,
             ]);
 
             // Delete existing booking items and quantities
@@ -366,18 +350,18 @@ class BookingController extends Controller
                     'weight' => $itemData['weight'],
                 ]);
 
-                foreach ($itemData['itemsInfo'] as $itemInfo) {
+                foreach ($itemData['item_quantities'] as $itemQuantity) {
                     $bookingItem->item_quantities()->create([
-                        'item_name' => $itemInfo['item_name'],
-                        'quantity' => $itemInfo['quantity'],
+                        'item_name' => $itemQuantity['item_name'],
+                        'quantity' => $itemQuantity['quantity'],
                     ]);
                 }
             }
 
             $user = Auth::user();
             ActivityLog::create([
-                'title' => 'Booking Updated',
-                'activity' => 'Consignment (CN no : ' . $booking->cn_no . ') has been updated!',
+                'title' => 'Booking Items Updated',
+                'activity' => 'Items for Consignment (CN no : ' . $booking->cn_no . ') have been updated!',
                 'user_id' => $user->id,
                 'branch_id' => $user->branch->id,
                 'created_at' => now()
@@ -385,7 +369,7 @@ class BookingController extends Controller
 
             DB::commit();
 
-            return response()->json(['message' => 'Booking updated successfully'], 200);
+            return response()->json(['message' => 'Booking items updated successfully'], 200);
         } catch (\Throwable $th) {
             DB::rollback();
             return response()->json(['error' => $th->getMessage()], 500);
@@ -493,6 +477,51 @@ class BookingController extends Controller
 
     public function destroy(Booking $booking)
     {
-        //
+        try {
+            DB::beginTransaction();
+
+            // Check if the booking is in pending status
+            $isPending = $booking->statuses()->count() == 0 || $booking->statuses()->where('active', 1)->where('status', 'pending')->exists();
+
+            if (!$isPending) {
+                return response()->json(['error' => 'Only pending bookings can be deleted.'], 403);
+            }
+
+            // Delete related items and their quantities
+            foreach ($booking->items as $item) {
+                $item->item_quantities()->delete();
+            }
+            $booking->items()->delete();
+
+            // Delete related statuses
+            $booking->statuses()->delete();
+
+            // Delete related documents and their associated images
+            $document = $booking->document;
+            if ($document) {
+                if ($document->file_location) {
+                    Storage::disk('public')->delete($document->file_location);
+                }
+                $document->delete();
+            }
+
+            $booking->delete();
+
+            $user = Auth::user();
+            ActivityLog::create([
+                'title' => 'Booking Deleted',
+                'activity' => 'Consignment (CN no : ' . $booking->cn_no . ') has been deleted!',
+                'user_id' => $user->id,
+                'branch_id' => $user->branch->id,
+                'created_at' => now()
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Booking deleted successfully'], 200);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['error' => $th->getMessage()], 500);
+        }
     }
 }
