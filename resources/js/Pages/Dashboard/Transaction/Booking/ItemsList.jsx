@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { IconButton, Tooltip } from '@mui/material';
-import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, EyeIcon, ImageIcon, PencilIcon, PrinterIcon, Trash2Icon } from 'lucide-react';
+import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, EyeIcon, ImageIcon, PencilIcon, PrinterIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import React, { useEffect, useState } from 'react'
 import AddNewItem from './AddNewItem';
@@ -316,7 +316,7 @@ const FilterBooking = (props) => {
 
             <div>
                 <div className={`flex justify-between items-center my-2 cursor-pointer ${cnr ? 'text-red-800 font-bold' : ''}`} onClick={() => toggleAccordion(setShowConsignors)}>
-                    <h4 className="underline capitalize">By Consignor</h4>
+                    <h4 className="underline capitalize text-xs">By Consignor</h4>
                     <span>{showConsignors ? <ChevronUpIcon className='w-5 h-5' /> : <ChevronDownIcon className='w-5 h-5' />}</span>
                 </div>
                 {showConsignors && (
@@ -329,7 +329,7 @@ const FilterBooking = (props) => {
                                     key={party.id}
                                     className={`cursor-pointer rounded-full p-2 px-4 flex justify-between items-center my-1 ${party.id === cnr ? 'text-teal-50 bg-teal-600' : 'bg-white hover:bg-gray-200'}`}
                                 >
-                                    <span>{party.name}</span>
+                                    <span className='text-xs font-semibold'>{party.name}</span>
                                     {party.id === cnr && <CircleCheckBig className='w-4 h-4' />}
                                 </div>
                             );
@@ -340,7 +340,7 @@ const FilterBooking = (props) => {
             <hr className='my-4' />
             <div>
                 <div className={`flex justify-between items-center my-2 cursor-pointer ${cne ? 'text-red-800 font-bold' : ''}`} onClick={() => toggleAccordion(setShowConsignees)}>
-                    <h4 className="underline capitalize">By Consignee (Party)</h4>
+                    <h4 className="underline capitalize text-xs">By Consignee (Party)</h4>
                     <span>{showConsignees ? <ChevronUpIcon className='w-5 h-5' /> : <ChevronDownIcon className='w-5 h-5' />}</span>
                 </div>
                 {showConsignees && (
@@ -353,7 +353,7 @@ const FilterBooking = (props) => {
                                     key={party.id}
                                     className={`cursor-pointer rounded-full p-2 px-4 flex justify-between items-center my-1 ${party.id === cne ? 'text-teal-50 bg-teal-600' : 'bg-white hover:bg-gray-200'}`}
                                 >
-                                    <span>{party.name}</span>
+                                    <span className='text-xs font-semibold'>{party.name}</span>
                                     {party.id === cne && <CircleCheckBig className='w-4 h-4' />}
                                 </div>
                             )
