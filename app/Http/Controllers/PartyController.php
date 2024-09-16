@@ -16,10 +16,13 @@ class PartyController extends Controller
     public function get_allitems()
     {
         $branchId = optional($this->branch)->id;
-
-        $items = Party::whereHas('location', function ($query) use ($branchId) {
+        $query = Party::whereHas('location', function ($query) use ($branchId) {
             $query->where('branch_id', $branchId);
-        })->with(['cr_bookings', 'ce_bookings', 'location'])->get();
+        })->with(['cr_bookings', 'ce_bookings', 'location']);
+
+        $items = $query->orderByRaw('CASE WHEN is_consignor = 1 THEN 0 ELSE 1 END')
+                       ->orderBy('name')
+                       ->get();
 
         return response()->json($items);
     }
@@ -42,8 +45,11 @@ class PartyController extends Controller
             });
         }
 
-        $item = $query->with('location')->orderBy($orderBy, $order)->paginate($perPage);
-        return response()->json($item);
+        $query->orderByRaw('CASE WHEN is_consignor = 1 THEN 0 ELSE 1 END')
+              ->orderBy('name');
+
+        $items = $query->with('location')->orderBy($orderBy, $order)->paginate($perPage);
+        return response()->json($items);
     }
 
 

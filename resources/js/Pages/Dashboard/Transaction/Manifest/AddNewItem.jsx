@@ -22,10 +22,8 @@ const AddNewItem = (props) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // console.log(formInfo);
         axios.post('/data/manifest/new', { ...formInfo })
             .then(res => {
-                console.log(res.data);
                 reload();
                 setFormInfo({
                     trip_date: new Date(),

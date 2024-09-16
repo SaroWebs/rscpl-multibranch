@@ -328,7 +328,7 @@ const BookingItems = (props) => {
 
     const handleItemInfoChange = (updatedItem) => {
         updatedItem.qty = isNaN(parseInt(updatedItem.qty, 10)) ? 0 : parseInt(updatedItem.qty, 10);
-        if (updatedItem.qty > 0) {
+        if (updatedItem.qty >= 0) {
             const newItemsInfo = formItem.itemsInfo.map(item =>
                 item.name === updatedItem.name ? { ...item, qty: updatedItem.qty } : item
             );
@@ -450,11 +450,17 @@ const BookingItems = (props) => {
                         <tr key={index}>
                             <td className="border border-gray-200 text-center text-sm max-w-[100px]">{itm.invoice_no}</td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{new Date(itm.invoice_date).toLocaleDateString('en-GB')}</td>
-                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.amount}</td>
+                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">
+                                {itm.amount}
+                            </td>
                             {itm.itemsInfo.map((itemInfo, i) => (
-                                <td key={i} className="border border-gray-200 text-center text-sm max-w-[40px]">{itemInfo.qty}</td>
+                                <td key={i} className="border border-gray-200 text-center text-sm max-w-[40px]">
+                                    {itemInfo.qty}
+                                </td>
                             ))}
-                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.weight}</td>
+                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">
+                                {itm.weight}
+                            </td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                                 <IconButton onClick={() => removeItem(index)}>
                                     <XIcon className='h-4 w-4 text-orange-600' />
@@ -489,7 +495,7 @@ const BookingItems = (props) => {
                             <input type="text"
                                 name="amount"
                                 id="inv_amt"
-                                value={formItem.amount}
+                                value={parseInt(formItem.amount) ? parseInt(formItem.amount): 0}
                                 onChange={(e) => setFormItem({ ...formItem, amount: e.target.value })}
                                 className="w-full text-xs  border-none outline-none focus:ring-0 rounded-sm shadow-xs px-2 text-center"
                                 placeholder='amount'
@@ -509,7 +515,7 @@ const BookingItems = (props) => {
                             <input type="text"
                                 name="weight"
                                 id="grss_weight"
-                                value={formItem.weight}
+                                value={parseInt(formItem.weight) ? parseInt(formItem.weight): 0}
                                 onChange={(e) => setFormItem({ ...formItem, weight: e.target.value })}
                                 className="w-full text-xs  border-none outline-none focus:ring-0 rounded-sm shadow-xs px-2 text-center"
                                 placeholder='Gross Weight'

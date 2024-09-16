@@ -17,13 +17,20 @@ const DeleteManifest = ({ item, reload }) => {
             });
     }
 
+    const isDeletable = () => {
+        
+        console.log(item)
+        return true;
+    }
+    
     return (
         <>
             <Tooltip title="Delete Manifest" placement="top">
-                <IconButton onClick={() => setOpenDialog(true)} color="warning" aria-label="remove-manifest">
-                    <TrashIcon className='w-6 h-6' />
-                </IconButton>
+                    <IconButton disabled={!isDeletable()} onClick={() => setOpenDialog(true)} color="warning" aria-label="remove-manifest">
+                        <TrashIcon className='w-6 h-6' />
+                    </IconButton>
             </Tooltip>
+
             <Dialog visible={openDialog} modal onHide={() => setOpenDialog(false)} className="rounded-md m-4 w-full md:w-1/4 p-4 bg-white flex flex-col">
                 <h3 className="text-center text-2xl text-slate-600 font-bold">Are You Sure ?</h3>
                 <p className="text-center text-slate-600">

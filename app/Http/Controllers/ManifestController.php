@@ -105,8 +105,9 @@ class ManifestController extends Controller
 
     private function generateManifestNumber()
     {
-        $prefix = 'M';
+        $branchId = optional($this->branch)->id;
         $latestManifest = Manifest::whereDate('created_at', now()->toDateString())
+            ->where('branch_id', $branchId)
             ->orderBy('created_at', 'desc')
             ->first();
 
@@ -117,9 +118,9 @@ class ManifestController extends Controller
             $newIndex = 1;
         }
 
-        $index = str_pad($newIndex, 3, '0', STR_PAD_LEFT);
+        $index = str_pad($newIndex, 4, '0', STR_PAD_LEFT);
 
-        return $prefix . $index;
+        return $index;
     }
 
     /**
@@ -135,12 +136,75 @@ class ManifestController extends Controller
         }
 
         try {
+            $bookings = $manifest->bookings;
+
+            if($bookings->count() > 0){
+                $allPending = $bookings->every(function ($booking) {
+                    return $booking->statuses()->count() == 0 || $booking->statuses()->where('active', 1)->where('status', 'pending')->exists();
+                });
+    
+                if (!$allPending) {
+                    return response()->json(['error' => 'Only manifests with pending bookings can be deleted.'], 403);
+                }
+                
+                foreach ($bookings as $booking) {
+                    $bookingController = new BookingController();
+                    $bookingController->destroy($booking);
+                }
+            }
+
             $manifest->delete();
-            return response()->json(['message' => 'Manifest and its bookings deleted successfully.']);
+
+            $user = Auth::user();
+            ActivityLog::create([
+                'title' => 'Manifest Deleted',
+                'activity' => 'Manifest (Manifest no : ' . $manifest->manifest_no . ') has been deleted!',
+                'user_id' => $user->id,
+                'branch_id' => $user->branch->id,
+                'created_at' => now()
+            ]);
+
             DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Failed to delete manifest and its bookings.'], 500);
+            return response()->json(['message' => 'Manifest deleted successfully'], 200);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['error' => $th->getMessage()], 500);
         }
+    }
+
+    /**
+     * Check if the manifest is deletable.
+     *
+     * @param Manifest $manifest
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function is_deletable(Manifest $manifest)
+    {
+        $branchId = optional($this->branch)->id;
+        
+        if ($manifest->branch_id !== $branchId) {
+            return response()->json([
+                'is_deletable' => false,
+                'message' => 'Unauthorized'
+            ]);
+        }
+
+        $bookings = $manifest->bookings;
+
+        if ($bookings->count() === 0) {
+            return response()->json([
+                'is_deletable' => true,
+                'message' => 'Manifest is deletable'
+            ]);
+        }
+
+        $allPending = $bookings->every(function ($booking) {
+            return $booking->statuses()->count() == 0 || $booking->statuses()->where('active', 1)->where('status', 'pending')->exists();
+        });
+
+        return response()->json([
+            'is_deletable' => $allPending,
+            'message' => $allPending ? 'Manifest is deletable' : 'Manifest contains non-pending bookings and cannot be deleted'
+        ]);
     }
 }
