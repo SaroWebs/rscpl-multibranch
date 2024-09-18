@@ -27,39 +27,45 @@ const ItemsList = (props) => {
             <div className="content px-2">
                 {manifests && manifests.total > 0 ? (
                     <>
-                        <table className="w-full border">
-                            <thead>
-                                <tr>
-                                    <th className="text-center py-3">Sl.</th>
-                                    <th className="text-left">Manifest</th>
-                                    <th className="text-left">From Location</th>
-                                    <th className="text-left">To Location</th>
-                                    <th className="text-left">Trip Date</th>
-                                    <th className="text-left">Vehicle Number</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {manifests.data.map((manifest, i) => (
-                                    <tr key={i} className="border">
-                                        <td className='text-center py-2'>{i + (manifests.per_page * (manifests.current_page - 1)) + 1}</td>
-                                        <td>{manifest.manifest_no}</td>
-                                        <td>{manifest.from_location?.name}</td>
-                                        <td>{manifest.to_location?.name}</td>
-                                        <td>
-                                            {new Date(manifest.trip_date).toLocaleDateString('en-GB')}
-                                        </td>
-                                        <td>{manifest.lorry?.lorry_number}</td>
-                                        <td className="text-center">
-                                            <div className="flex gap-4">
-                                                <ManifestDetails id={manifest.id} />
-                                                <DeleteManifest item={manifest} reload={reload} />
-                                            </div>
-                                        </td>
+                        {props.loading ? (
+                            <div className={`min-h-64 flex justify-center items-center`}>
+                                <span className='text-3xl font-semibold text-slate-500'>Loading...</span>
+                            </div>
+                        ) : (
+                            <table className="w-full border">
+                                <thead>
+                                    <tr>
+                                        <th className="text-center py-3">Sl.</th>
+                                        <th className="text-left">Manifest</th>
+                                        <th className="text-left">From Location</th>
+                                        <th className="text-left">To Location</th>
+                                        <th className="text-left">Trip Date</th>
+                                        <th className="text-left">Vehicle Number</th>
+                                        <th></th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {manifests.data.map((manifest, i) => (
+                                        <tr key={i} className="border">
+                                            <td className='text-center py-2'>{i + (manifests.per_page * (manifests.current_page - 1)) + 1}</td>
+                                            <td>{manifest.manifest_no}</td>
+                                            <td>{manifest.from_location?.name}</td>
+                                            <td>{manifest.to_location?.name}</td>
+                                            <td>
+                                                {new Date(manifest.trip_date).toLocaleDateString('en-GB')}
+                                            </td>
+                                            <td>{manifest.lorry?.lorry_number}</td>
+                                            <td className="text-center">
+                                                <div className="flex gap-4">
+                                                    <ManifestDetails id={manifest.id} />
+                                                    <DeleteManifest item={manifest} reload={reload} />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
                         <Pagination manifests={manifests} reload={reload} perPage={perPage} searchTxt={searchTxt} />
                     </>
                 ) : <span>No Item found!</span>}
@@ -83,7 +89,7 @@ const Pagination = ({ manifests, reload, perPage, searchTxt }) => (
                     page = urlParams.get('page');
                 }
                 return (
-                    <li key={index} className={`text-md font-semibold ${link.active ? 'underline' : ''}`}>
+                    <li key={index} className={`text-md font-semibold ${link.active ? 'underline text-red-700' : 'text-blue-800'}`}>
                         <button onClick={() => reload({ page, per_page: perPage, search: searchTxt })} dangerouslySetInnerHTML={{ __html: link.label }} />
                     </li>
                 );

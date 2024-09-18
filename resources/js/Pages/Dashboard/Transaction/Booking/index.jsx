@@ -8,6 +8,7 @@ import React, { useEffect, useRef, useState } from 'react'
 
 import ItemsList from './ItemsList';
 import ReturnList from './Return/ReturnList';
+import ManifestSection from './ManifestSection';
 
 const index = (props) => {
 	const items = [{ label: "Transaction", url: '#' }, { label: "Booking" }];
@@ -15,8 +16,28 @@ const index = (props) => {
 	const [bookings, setBookings] = useState([]);
 	const [parties, setparties] = useState([]);
 	const [returnList, setReturnList] = useState([]);
+	const [manifests, setManifests] = useState(null);
+	const [loading, setLoading] = useState({
+		manifest: true,
+		booking: true,
+		return: true,
+	});
+
+	const loadManiData = (params) => {
+		setLoading({ ...loading, manifest: true })
+		axios.get('/data/manifests', { params })
+			.then(res => {
+				setManifests(res.data);
+			})
+			.catch(err => {
+				console.log(err.message);
+			})
+			.finally(() => setLoading({ ...loading, manifest: false }));
+	}
+
 
 	const loadData = (params) => {
+		setLoading({ ...loading, booking: true });
 		loadParties();
 		axios.get('/data/bookings', { params })
 			.then(res => {
@@ -24,11 +45,13 @@ const index = (props) => {
 			})
 			.catch(err => {
 				console.log(err.message);
-			});
+			})
+			.finally(() => setLoading({ ...loading, booking: false }));
 	}
 
 
 	const loadReturnData = (params) => {
+		setLoading({ ...loading, return: true });
 		loadParties();
 		axios.get('/data/return/bookings', { params })
 			.then(res => {
@@ -36,7 +59,8 @@ const index = (props) => {
 			})
 			.catch(err => {
 				console.log(err.message);
-			});
+			})
+			.finally(() => setLoading({ ...loading, return: false }));
 	}
 
 	const loadParties = () => {
@@ -51,6 +75,7 @@ const index = (props) => {
 
 
 	useEffect(() => {
+		loadManiData();
 		loadData();
 		loadReturnData();
 	}, [])
@@ -67,11 +92,14 @@ const index = (props) => {
 				<div className="shadow w-full h-full flex flex-col bg-white rounded-lg p-4">
 					<div className="card">
 						<TabView>
+							<TabPanel header="Manifests">
+								<ManifestSection manifests={manifests} toast={toast} reload={loadManiData} auth={props.auth} loading={loading.manifest} />
+							</TabPanel>
 							<TabPanel header="Consignment List">
-								<ItemsList parties={parties} bookings={bookings} reload={loadData} toast={toast} {...props} />
+								<ItemsList parties={parties} bookings={bookings} reload={loadData} toast={toast} {...props} loading={loading.booking} />
 							</TabPanel>
 							<TabPanel header="Return Consignments">
-								<ReturnList parties={parties} bookings={returnList} reload={loadReturnData} toast={toast} {...props} />
+								<ReturnList parties={parties} bookings={returnList} reload={loadReturnData} toast={toast} {...props} loading={loading.return} />
 							</TabPanel>
 						</TabView>
 					</div>

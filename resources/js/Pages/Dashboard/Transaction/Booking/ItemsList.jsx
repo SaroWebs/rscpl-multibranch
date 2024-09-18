@@ -33,7 +33,6 @@ const ItemsList = (props) => {
                 setDelivCount(x.length);
             })
         }
-        console.log(bookings);
     }, [bookings]);
 
 
@@ -96,134 +95,140 @@ const ItemsList = (props) => {
                         {bookings && bookings.total > 0 ? (
                             <>
                                 <div className="overflow-x-auto">
-                                    <table className="w-full border">
-                                        <thead>
-                                            <tr>
-                                                <th className="text-center py-3 px-2">Sl.</th>
-                                                <th className="text-left min-w-[180px]">Manifest</th>
-                                                <th className="text-left min-w-[100px]">CN No.</th>
-                                                <th className="text-left min-w-[180px]">Consignor</th>
-                                                <th className="text-left min-w-[180px]">Consignee</th>
-                                                <th className="text-left min-w-[80px]">STP</th>
-                                                <th className="text-start min-w-[100px]">Destination</th>
-                                                <th className="text-center min-w-[50px]">Qty</th>
-                                                <th className="text-center min-w-[90px]">Weight (KG)</th>
-                                                <th className="text-center min-w-[90px]">Amount (₹)</th>
-                                                <th className="text-center min-w-[120px]">Status</th>
-                                                {delivCount > 0 &&
-                                                    <th className='text-center min-w-[60px]'>POD</th>
-                                                }
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {bookings.data.map((booking, i) => {
-                                                let activeStatus = booking.statuses.filter(st => st.active == 1)[0];
+                                    {props.loading ? (
+                                        <div className={`min-h-64 flex justify-center items-center`}>
+                                            <span className='text-3xl font-semibold text-slate-500'>Loading...</span>
+                                        </div>
+                                    ) : (
+                                        <table className="w-full border">
+                                            <thead>
+                                                <tr>
+                                                    <th className="text-center py-3 px-2">Sl.</th>
+                                                    <th className="text-left min-w-[180px]">Manifest</th>
+                                                    <th className="text-left min-w-[100px]">CN No.</th>
+                                                    <th className="text-left min-w-[180px]">Consignor</th>
+                                                    <th className="text-left min-w-[180px]">Consignee</th>
+                                                    <th className="text-left min-w-[80px]">STP</th>
+                                                    <th className="text-start min-w-[100px]">Destination</th>
+                                                    <th className="text-center min-w-[50px]">Qty</th>
+                                                    <th className="text-center min-w-[90px]">Weight (KG)</th>
+                                                    <th className="text-center min-w-[90px]">Amount (₹)</th>
+                                                    <th className="text-center min-w-[120px]">Status</th>
+                                                    {delivCount > 0 &&
+                                                        <th className='text-center min-w-[60px]'>POD</th>
+                                                    }
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {bookings.data.map((booking, i) => {
+                                                    let activeStatus = booking.statuses.filter(st => st.active == 1)[0];
 
-                                                return (
-                                                    <tr key={i} className="border">
-                                                        <td className='text-center py-2'>{i + (bookings.per_page * (bookings.current_page - 1)) + 1}</td>
-                                                        <td className='text-left'>
-                                                            {booking.manifest?.lorry?.lorry_number}
-                                                            <span className='text-xs text-red-500 font-bold'>
-                                                                ({new Date(booking.manifest.trip_date).toLocaleDateString('en-GB')})
-                                                            </span>
-                                                        </td>
-                                                        <td className='text-left'>{booking.cn_no}</td>
-                                                        <td className='text-left'>{booking.consignor?.name}</td>
-                                                        <td className='text-left'>{booking.consignee?.name}</td>
-                                                        <td className='text-left'>{booking.ship_to_party ? "Yes" : "No"}</td>
-                                                        <td className='text-left'>
-                                                            {booking.ship_to_party ? booking.party_location : booking.consignee?.location?.name}
-                                                        </td>
-                                                        <td className='text-center'>
-                                                            {booking.items.reduce((sum, item) => sum + item.item_quantities.reduce((itemSum, itemInfo) => itemSum + itemInfo.quantity, 0), 0)}
-                                                        </td>
-                                                        <td className='text-center'>
-                                                            {booking.items.reduce((sum, item) => sum + item.weight, 0)}
-                                                        </td>
-                                                        <td className='text-center'>
-                                                            {booking.items.reduce((ac, ci) => ac + parseInt(ci.amount), 0)}
-                                                        </td>
-                                                        <td className='text-center'>
-                                                            {privilege > 5 ?
-                                                                <BookingStatus booking={booking} reload={reload} perPage={perPage} searchTxt={searchTxt} status={activeStatus} />
-                                                                :
-                                                                <span className='uppercase'>{activeStatus.status}</span>
-                                                            }
-                                                        </td>
-                                                        
-                                                        {activeStatus && (activeStatus.status == 'delivered') ? (
-                                                            <td className='text-center'>
-                                                                <DeliveryProof booking={booking} status={activeStatus} />
+                                                    return (
+                                                        <tr key={i} className="border">
+                                                            <td className='text-center py-2'>{i + (bookings.per_page * (bookings.current_page - 1)) + 1}</td>
+                                                            <td className='text-left'>
+                                                                {booking.manifest?.lorry?.lorry_number}
+                                                                <span className='text-xs text-red-500 font-bold'>
+                                                                    ({new Date(booking.manifest.trip_date).toLocaleDateString('en-GB')})
+                                                                </span>
                                                             </td>
-                                                        ) :
-                                                            <td className='text-center'>
-                                                                <button disabled>
-                                                                    <ImageIcon className="w-6 h-6 text-gray-100" />
-                                                                </button>
+                                                            <td className='text-left'>{booking.cn_no}</td>
+                                                            <td className='text-left'>{booking.consignor?.name}</td>
+                                                            <td className='text-left'>{booking.consignee?.name}</td>
+                                                            <td className='text-left'>{booking.ship_to_party ? "Yes" : "No"}</td>
+                                                            <td className='text-left'>
+                                                                {booking.ship_to_party ? booking.party_location : booking.consignee?.location?.name}
                                                             </td>
-                                                        }
-                                                        
-                                                        <td className="text-center m-2 flex gap-2">
-                                                            {activeStatus && (activeStatus.status == 'pending') ? (
-                                                                <>
-                                                                    <EditBookingItem 
-                                                                        booking={booking} 
-                                                                        reload={reload} 
-                                                                        toast={toast}
-                                                                        manifests={manifests}
-                                                                        items={items}
-                                                                        locations={locations}
-                                                                        parties={parties}
-                                                                    />
-                                                                    <Tooltip title="Delete">
-                                                                        <IconButton
-                                                                            color="error"
-                                                                            onClick={() => handleDelete(booking)}
-                                                                            aria-label="Delete">
-                                                                            <Trash2Icon className='w-4 h-4'/>
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                </>
+                                                            <td className='text-center'>
+                                                                {booking.items.reduce((sum, item) => sum + item.item_quantities.reduce((itemSum, itemInfo) => itemSum + itemInfo.quantity, 0), 0)}
+                                                            </td>
+                                                            <td className='text-center'>
+                                                                {booking.items.reduce((sum, item) => sum + item.weight, 0)}
+                                                            </td>
+                                                            <td className='text-center'>
+                                                                {booking.items.reduce((ac, ci) => ac + parseInt(ci.amount), 0)}
+                                                            </td>
+                                                            <td className='text-center'>
+                                                                {privilege > 5 ?
+                                                                    <BookingStatus booking={booking} reload={reload} perPage={perPage} searchTxt={searchTxt} status={activeStatus} />
+                                                                    :
+                                                                    <span className='uppercase'>{activeStatus.status}</span>
+                                                                }
+                                                            </td>
+
+                                                            {activeStatus && (activeStatus.status == 'delivered') ? (
+                                                                <td className='text-center'>
+                                                                    <DeliveryProof booking={booking} status={activeStatus} />
+                                                                </td>
                                                             ) :
-                                                            <Tooltip title="Edit (Disabled)">
-                                                                <span>
+                                                                <td className='text-center'>
+                                                                    <button disabled>
+                                                                        <ImageIcon className="w-6 h-6 text-gray-100" />
+                                                                    </button>
+                                                                </td>
+                                                            }
+
+                                                            <td className="text-center m-2 flex gap-2">
+                                                                {activeStatus && (activeStatus.status == 'pending') ? (
+                                                                    <>
+                                                                        <EditBookingItem
+                                                                            booking={booking}
+                                                                            reload={reload}
+                                                                            toast={toast}
+                                                                            manifests={manifests}
+                                                                            items={items}
+                                                                            locations={locations}
+                                                                            parties={parties}
+                                                                        />
+                                                                        <Tooltip title="Delete">
+                                                                            <IconButton
+                                                                                color="error"
+                                                                                onClick={() => handleDelete(booking)}
+                                                                                aria-label="Delete">
+                                                                                <Trash2Icon className='w-4 h-4' />
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    </>
+                                                                ) :
+                                                                    <Tooltip title="Edit (Disabled)">
+                                                                        <span>
+                                                                            <IconButton
+                                                                                color="primary"
+                                                                                disabled
+                                                                                aria-label="Edit">
+                                                                                <PencilIcon className='w-4 h-4' />
+                                                                            </IconButton>
+                                                                        </span>
+                                                                    </Tooltip>
+
+                                                                }
+                                                                <Tooltip title="Print">
                                                                     <IconButton
                                                                         color="primary"
-                                                                        disabled
-                                                                        aria-label="Edit">
-                                                                        <PencilIcon className='w-4 h-4'/>
+                                                                        onClick={() => handlePrint(booking.id)}
+                                                                        aria-label="Print">
+                                                                        <PrinterIcon className='h-4 w-4' />
                                                                     </IconButton>
-                                                                </span>
-                                                            </Tooltip>
-                                                                
-                                                            }
-                                                            <Tooltip title="Print">
-                                                                <IconButton
-                                                                    color="primary"
-                                                                    onClick={() => handlePrint(booking.id)}
-                                                                    aria-label="Print">
-                                                                    <PrinterIcon className='h-4 w-4' />
-                                                                </IconButton>
-                                                            </Tooltip>
+                                                                </Tooltip>
 
-                                                            <Tooltip title="Track Booking">
-                                                                <IconButton
-                                                                    color="secondary"
-                                                                    component={Link}
-                                                                    href={`/booking/track?cn_no=${booking.cn_no}`}
-                                                                    aria-label="Track booking">
-                                                                    <Crosshair className='h-4 w-4' />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            }
-                                            )}
-                                        </tbody>
-                                    </table>
+                                                                <Tooltip title="Track Booking">
+                                                                    <IconButton
+                                                                        color="secondary"
+                                                                        component={Link}
+                                                                        href={`/booking/track?cn_no=${booking.cn_no}`}
+                                                                        aria-label="Track booking">
+                                                                        <Crosshair className='h-4 w-4' />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                }
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    )}
                                 </div>
                                 <Pagination bookings={bookings} reload={reload} perPage={perPage} searchTxt={searchTxt} />
                             </>
