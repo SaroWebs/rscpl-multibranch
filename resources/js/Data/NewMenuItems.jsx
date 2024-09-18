@@ -45,19 +45,8 @@ const NewMenuItems = [
 	},
 	{
 		name: 'Transactions',
-		url: '#',
-		children: [
-			{
-				name: 'Manifest',
-				url: '/transaction/manifest',
-				children: []
-			},
-			{
-				name: 'Booking',
-				url: '/transaction/booking',
-				children: []
-			}
-		]
+		url: '/transaction/booking',
+		children: []
 	},
 	{
 		name: 'Track',

@@ -39,7 +39,7 @@ const ManifestDetails = (props) => {
                 }))
             );
 
-            const uniqueConsignors = [...new Set(manifest.bookings.map(booking => booking.consignor))];
+            const uniqueConsignors = Array.from(new Set(manifest.bookings.map(booking => JSON.stringify(booking.consignor)))).map(json => JSON.parse(json));
             setConsignors(uniqueConsignors);
 
             if (uniqueConsignors.length == 1) {
@@ -50,14 +50,12 @@ const ManifestDetails = (props) => {
                 iwd.item_quantities.sort((a, b) => a.id - b.id);
             });
             setInvoices(itemsWithDetails);
+            setFiltered(itemsWithDetails);
         } else {
             setInvoices([]);
         }
     }, [manifest]);
 
-    useEffect(() => {
-        console.log(invoices);
-    }, [invoices]);
 
     useEffect(() => {
         if (party) {
