@@ -18,9 +18,9 @@ const index = (props) => {
 	const [returnList, setReturnList] = useState([]);
 	const [manifests, setManifests] = useState(null);
 	const [loading, setLoading] = useState({
-		manifest: true,
-		booking: true,
-		return: true,
+		manifest: false,
+		booking: false,
+		return: false,
 	});
 
 	const loadManiData = (params) => {
