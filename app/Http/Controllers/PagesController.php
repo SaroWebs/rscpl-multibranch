@@ -15,8 +15,6 @@ use Illuminate\Http\Request;
 class PagesController extends Controller
 {
 
-
-
     function test()
     {
         return Inertia::render('Test');
@@ -79,12 +77,16 @@ class PagesController extends Controller
     {
         $branchId = optional($this->branch)->id;
         $mani = Manifest::with('lorry')->where('branch_id', $branchId)->get();
-        $brnchs = Branch::all(); // Keeping all branches for now, adjust if needed
+        $brnchs = Branch::all();
         $items = Item::where('branch_id', $branchId)->get();
+        $lr = Lorry::where('branch_id', $branchId)->get();
+        $ls = Location::where('branch_id', $branchId)->get();
         return Inertia::render('Dashboard/Transaction/Booking/index', [
             'manifests' => $mani,
             'branches' => $brnchs,
             'items' => $items,
+            'lorries' => $lr,
+            'locations' => $ls
         ]);
     }
 

@@ -93,7 +93,15 @@ const index = (props) => {
 					<div className="card">
 						<TabView>
 							<TabPanel header="Manifests">
-								<ManifestSection manifests={manifests} toast={toast} reload={loadManiData} auth={props.auth} loading={loading.manifest} />
+								<ManifestSection 
+									manifests={manifests} 
+									toast={toast} 
+									reload={loadManiData} 
+									auth={props.auth} 
+									loading={loading.manifest} 
+									locations={props.locations} 
+									lorries={props.lorries} 
+								/>
 							</TabPanel>
 							<TabPanel header="Consignment List">
 								<ItemsList parties={parties} bookings={bookings} reload={loadData} toast={toast} {...props} loading={loading.booking} />

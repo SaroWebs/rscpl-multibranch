@@ -104,10 +104,10 @@ const ItemsList = (props) => {
                                             <thead>
                                                 <tr>
                                                     <th className="text-center py-3 px-2">Sl.</th>
-                                                    <th className="text-left min-w-[180px]">Manifest</th>
+                                                    <th className="text-left min-w-[100px]">Manifest</th>
                                                     <th className="text-left min-w-[100px]">CN No.</th>
-                                                    <th className="text-left min-w-[180px]">Consignor</th>
-                                                    <th className="text-left min-w-[180px]">Consignee</th>
+                                                    <th className="text-left min-w-[150px]">Consignor</th>
+                                                    <th className="text-left min-w-[150px]">Consignee</th>
                                                     <th className="text-left min-w-[80px]">STP</th>
                                                     <th className="text-start min-w-[100px]">Destination</th>
                                                     <th className="text-center min-w-[50px]">Qty</th>

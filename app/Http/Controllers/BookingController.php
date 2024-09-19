@@ -225,6 +225,7 @@ class BookingController extends Controller
             'bookingItemsData.*.invoice_date' => 'required|date',
             'bookingItemsData.*.amount' => 'required|numeric',
             'bookingItemsData.*.weight' => 'nullable|numeric',
+            'bookingItemsData.*.remarks' => 'nullable|string',
             'bookingItemsData.*.itemsInfo' => 'required|array',
             'bookingItemsData.*.itemsInfo.*.item_name' => 'required|string',
             'bookingItemsData.*.itemsInfo.*.quantity' => 'required|integer',
@@ -272,6 +273,7 @@ class BookingController extends Controller
                         'invoice_date' => $inv_date,
                         'amount' => $itemData['amount'],
                         'weight' => $itemData['weight'],
+                        'remarks'=> $itemData['remarks']
                     ]);
 
                     if ($bookingItem) {
@@ -321,6 +323,7 @@ class BookingController extends Controller
             'bookingItemsData.*.invoice_date' => 'required|date',
             'bookingItemsData.*.amount' => 'required|numeric',
             'bookingItemsData.*.weight' => 'nullable|numeric',
+            'bookingItemsData.*.remarks' => 'nullable|string',
             'bookingItemsData.*.item_quantities' => 'required|array',
             'bookingItemsData.*.item_quantities.*.item_name' => 'required|string',
             'bookingItemsData.*.item_quantities.*.quantity' => 'required|integer',
@@ -348,6 +351,7 @@ class BookingController extends Controller
                     'invoice_date' => Carbon::parse($itemData['invoice_date'])->format('Y-m-d'),
                     'amount' => $itemData['amount'],
                     'weight' => $itemData['weight'],
+                    'remarks' => $itemData['remarks'],
                 ]);
 
                 foreach ($itemData['item_quantities'] as $itemQuantity) {

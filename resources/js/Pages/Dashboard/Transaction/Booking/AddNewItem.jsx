@@ -75,6 +75,7 @@ const AddNewItem = (props) => {
             invoice_date: item.invoice_date,
             amount: item.amount,
             weight: item.weight,
+            remarks: item.remarks,
             itemsInfo: item.itemsInfo.map(itemInfo => ({
                 item_name: itemInfo.name,
                 quantity: itemInfo.qty
@@ -149,7 +150,7 @@ const AddNewItem = (props) => {
             <button onClick={() => setOpenDialog(true)} className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semi-bold py-2 px-3 rounded">
                 Create New
             </button>
-            <Dialog visible={openDialog} header={'New Booking'} modal onHide={() => setOpenDialog(false)} className="rounded-md m-4 w-full md:w-2/3 p-4 bg-white">
+            <Dialog visible={openDialog} header={'New Booking'} modal onHide={() => setOpenDialog(false)} className="rounded-md m-4 w-full p-4 bg-white">
 
                 <form onSubmit={handleSubmit} className="space-y-4 p-4">
                     <div className="items w-full border p-4 rounded-lg shadow-md">
@@ -323,7 +324,8 @@ const BookingItems = (props) => {
         invoice_date: new Date(),
         amount: 0,
         itemsInfo: items.map(ix => ({ name: ix.name, qty: 0 })),
-        weight: 0
+        weight: 0,
+        remarks:''
     });
 
     const handleItemInfoChange = (updatedItem) => {
@@ -344,15 +346,14 @@ const BookingItems = (props) => {
             invoice_date: new Date(),
             amount: 0,
             itemsInfo: items.map(ix => ({ name: ix.name, qty: 0 })),
-            weight: 0
+            weight: 0,
+            remarks:''
         });
     }
 
     useEffect(() => {
         reloadForm();
     }, []);
-
-
 
 
     const AddItemQty = async (e) => {
@@ -442,7 +443,8 @@ const BookingItems = (props) => {
                             <th key={i} className="border capitalize border-gray-200 p-2 text-sm max-w-[40px]">{itm.name}</th>
                         ))}
                         <th className="border border-gray-200 p-2 text-sm max-w-[60px]">Weight(KG)</th>
-                        <th></th>
+                        <th className="border border-gray-200 p-2 text-sm max-w-[60px]">Remark</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -460,6 +462,9 @@ const BookingItems = (props) => {
                             ))}
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                                 {itm.weight}
+                            </td>
+                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">
+                                {itm.remarks}
                             </td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                                 <IconButton onClick={() => removeItem(index)}>
@@ -522,6 +527,16 @@ const BookingItems = (props) => {
                             />
                         </td>
                         <td className="border border-gray-200 text-center text-sm max-w-[60px]">
+                            <input type="text"
+                                name="remarks"
+                                id="remarks"
+                                value={formItem.remarks}
+                                onChange={(e) => setFormItem({ ...formItem, remarks: e.target.value })}
+                                className="w-full text-xs  border-none outline-none focus:ring-0 rounded-sm shadow-xs px-2 text-center"
+                                placeholder='Remark'
+                            />
+                        </td>
+                        <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                             <IconButton onClick={AddItemQty}>
                                 <PlusIcon className='h-4 w-4 text-green-600' />
                             </IconButton>
@@ -537,6 +552,7 @@ const BookingItems = (props) => {
                             {items.map((itm, i) => (
                                 <td key={i} className="border border-gray-200 text-center text-sm max-w-[40px]"></td>
                             ))}
+                            <td className="border border-gray-200 text-center text-sm max-w-[60px]"></td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]"></td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                                 <IconButton disabled>

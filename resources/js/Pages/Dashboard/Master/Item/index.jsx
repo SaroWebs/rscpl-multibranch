@@ -6,6 +6,7 @@ import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import { Dialog } from "primereact/dialog";
 import { FaRegEdit, FaRegTrashAlt } from "react-icons/fa";
 import AdminLayout from '@/Layouts/AdminLayout';
+import { InputSwitch } from 'primereact/inputswitch';
 
 const index = (props) => {
   const toast = useRef();
@@ -103,6 +104,7 @@ const ItemsList = (props) => {
                   <th className="text-left">Name</th>
                   <th className="text-left">Unit</th>
                   <th className="text-left">Description</th>
+                  <th className="text-left">Has Remark</th>
                   <th></th>
                 </tr>
               </thead>
@@ -114,6 +116,7 @@ const ItemsList = (props) => {
                       <td className="capitalize">{item.name}</td>
                       <td className="capitalize">{item.unit?.name}</td>
                       <td className="capitalize">{item.description}</td>
+                      <td className="capitalize">{item.has_remark ? 'Yes': 'No'}</td>
                       <td className="flex gap-4 justify-center items-center">
                         {privilege > 5 && <EditItem {...props} item={item} />}
                         {privilege > 10 && <DeleteItem {...props} item={item} />}
@@ -153,9 +156,9 @@ const Pagination = ({ items, reload, perPage, searchTxt }) => (
 );
 
 // operation
-
 const AddNewItem = ({ reload, toast, units }) => {
   const [openDialog, setOpenDialog] = useState(false);
+  const [hasRemark, setHasRemark] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -167,7 +170,8 @@ const AddNewItem = ({ reload, toast, units }) => {
     axios.post("/master/data/new/item", {
       name,
       unit_id,
-      description
+      description,
+      has_remark: hasRemark
     })
       .then(res => {
         toast.current.show({ label: 'Success', severity: 'success', detail: res.data.message });
@@ -207,6 +211,11 @@ const AddNewItem = ({ reload, toast, units }) => {
             <textarea name="description" id="description" rows={2} className="border-teal-100 focus:border-teal-500 focus:ring-0 rounded-sm shadow-xs px-4"></textarea>
           </div>
 
+          <div className="flex flex-col cursor-pointer" onClick={() =>setHasRemark(!hasRemark)}>
+            <label htmlFor="has_remark" className="mb-2 text-xs md:text-sm font-medium text-gray-700">Has Remark</label>
+            <InputSwitch checked={hasRemark} name="has_remark" id="has_remark" />
+          </div>
+
           <button type="submit" className="px-4 py-2 font-semibold text-white bg-teal-500 rounded-md shadow-sm hover:bg-teal-600">
             Submit
           </button>
@@ -218,6 +227,7 @@ const AddNewItem = ({ reload, toast, units }) => {
 
 const EditItem = ({ reload, toast, item, units }) => {
   const [openDialog, setOpenDialog] = useState(false);
+  const [hasRemark, setHasRemark] = useState(item.has_remark);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -229,7 +239,8 @@ const EditItem = ({ reload, toast, item, units }) => {
     axios.put(`/master/data/item/${item.id}`, {
       name,
       unit_id,
-      description
+      description,
+      has_remark: hasRemark
     })
       .then(res => {
         toast.current.show({ label: 'Success', severity: 'success', detail: res.data.message });
@@ -260,9 +271,7 @@ const EditItem = ({ reload, toast, item, units }) => {
               className='border-teal-100 focus:border-teal-500 focus:ring-0 rounded-sm shadow-xs px-4'>
               <option value="" disabled>Select Unit</option>
               {units && units.total > 0 && units.data.map(unit => (
-
                 <option key={unit.id} value={unit.id}>{unit.name}</option>
-
               ))}
             </select>
           </div>
@@ -270,6 +279,11 @@ const EditItem = ({ reload, toast, item, units }) => {
           <div className="flex flex-col">
             <label htmlFor="description" className="mb-2 text-xs md:text-sm font-medium text-gray-700">Description</label>
             <textarea name="description" id="description" defaultValue={item.description} rows={2} className="border-teal-100 focus:border-teal-500 focus:ring-0 rounded-sm shadow-xs px-4"></textarea>
+          </div>
+
+          <div className="flex flex-col cursor-pointer" onClick={() =>setHasRemark(!hasRemark)}>
+            <label htmlFor="has_remark" className="mb-2 text-xs md:text-sm font-medium text-gray-700">Has Remark</label>
+            <InputSwitch checked={hasRemark} name="has_remark" id="has_remark" />
           </div>
 
           <button type="submit" className="px-4 py-2 font-semibold text-white bg-teal-500 rounded-md shadow-sm hover:bg-teal-600">

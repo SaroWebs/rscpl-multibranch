@@ -19,8 +19,8 @@ class ManifestController extends Controller
         $privilege = optional($this->role)->privilege_index;
 
         $perPage = $request->input('per_page', 10);
-        $orderBy = $request->input('order_by', 'created_at');
-        $order = $request->input('order', 'asc');
+        $orderBy = $request->input('order_by', 'trip_date');
+        $order = $request->input('order', 'desc');
         $query = Manifest::query();
 
         if ($branchId) {

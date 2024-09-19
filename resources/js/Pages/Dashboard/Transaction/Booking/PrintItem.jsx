@@ -1,8 +1,17 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import '../../../../../css/print.css';
 
 const PrintItem = (props) => {
     const { booking, is_return } = props;
+
+    useEffect(() => {
+        initiatePrint();
+    }, [])
+    
+    const initiatePrint=()=>{
+       window.print();
+       window.close()
+    }
 
     let branch = booking.manifest?.branch;
     const itemNames = [...new Set(booking.items.flatMap(item => item.item_quantities.map(itemQuantity => itemQuantity.item_name)))];
@@ -99,6 +108,7 @@ const PrintItem = (props) => {
                             <th key={i} className='capitalize'>{itm}</th>
                         ))}
                         <th>Weight</th>
+                        <th>Remarks</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -111,6 +121,7 @@ const PrintItem = (props) => {
                                 <td key={ix}>{itemInfo.quantity}</td>
                             ))}
                             <td>{item.weight}</td>
+                            <td>{item.remarks}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -153,7 +164,7 @@ const PrintItem = (props) => {
     );
 
     return (
-        <div className="print-content text-xs">
+        <div id="print-content" className="print-content text-xs">
             {booking.items && booking.items.length > 0 && booking.items.map((_, i) => {
                 if (i % 5 === 0) {
                     const slicedData = booking.items.slice(i, i + 5);
