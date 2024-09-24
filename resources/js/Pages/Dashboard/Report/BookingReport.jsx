@@ -214,6 +214,7 @@ const CSVButton = ({ invoices }) => {
     const headers = [
         { label: 'Sl.', key: 'index' },
         { label: 'CN. No.', key: 'cn_no' },
+        { label: 'Consignor', key: 'consignor' },
         { label: 'Party (Consignee)', key: 'consignee' },
         { label: 'Invoice', key: 'invoice' },
         { label: 'Invoice Date', key: 'invoice_date' },
@@ -234,6 +235,7 @@ const CSVButton = ({ invoices }) => {
     const csvData = invoices.map((inv, index) => ({
         index: index + 1,
         cn_no: inv.booking.cn_no,
+        consignor: inv.booking.consignor?.name,
         consignee: inv.booking.consignee?.name,
         invoice: inv.invoice_no,
         invoice_date: new Date(inv.invoice_date).toISOString().split('T')[0],
@@ -254,11 +256,12 @@ const CSVButton = ({ invoices }) => {
         <CSVLink
             data={csvData}
             headers={headers}
-            filename={'bookings.csv'}
+            filename={'consignment-report.csv'}
             className="bg-orange-600 hover:bg-orange-700 text-white text-sm font-semi-bold py-2 px-3 rounded"
             onClick={(event) => {
                 if (isLoading) {
                     event.preventDefault();
+                    // prevent multiple click at once
                 } else {
                     setIsLoading(true);
                     setTimeout(() => setIsLoading(false), 2000);

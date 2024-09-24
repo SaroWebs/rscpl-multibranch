@@ -38,7 +38,8 @@ const EditBookingItem = ({ booking, reload, toast, items }) => {
                 invoice_date: new Date(item.invoice_date),
                 amount: item.amount,
                 itemsInfo: item.item_quantities.map(iq => ({ name: iq.item_name, qty: iq.quantity })),
-                weight: item.weight
+                weight: item.weight,
+                remarks: item.remarks // Add remarks to the itemList
             })));
         }
     }, [booking]);
@@ -54,7 +55,8 @@ const EditBookingItem = ({ booking, reload, toast, items }) => {
             item_quantities: item.itemsInfo.map(itemInfo => ({
                 item_name: itemInfo.name,
                 quantity: itemInfo.qty
-            }))
+            })),
+            remarks: item.remarks
         }));
 
         if (bookingItemsData.length > 0) {
@@ -142,7 +144,8 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
         invoice_date: new Date(),
         amount: 0,
         itemsInfo: items.map(ix => ({ name: ix.name, qty: 0 })),
-        weight: 0
+        weight: 0,
+        remarks: '' // Initialize remarks in formItem
     });
 
     const handleItemInfoChange = (updatedItem) => {
@@ -163,7 +166,8 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
             invoice_date: new Date(),
             amount: 0,
             itemsInfo: items.map(ix => ({ name: ix.name, qty: 0 })),
-            weight: 0
+            weight: 0,
+            remarks: '' // Reset remarks when reloading the form
         });
     }
 
@@ -210,7 +214,7 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                     item_quantities: formItem.itemsInfo.map(info => ({
                         item_name: info.name,
                         quantity: info.qty
-                    }))
+                    })),
                 }];
                 setItemList(newItemList);
                 updateProcessedData(newItemList);
@@ -257,6 +261,7 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                             <th key={i} className="border capitalize border-gray-200 p-2 text-sm max-w-[40px]">{itm.name}</th>
                         ))}
                         <th className="border border-gray-200 p-2 text-sm max-w-[60px]">Weight(KG)</th>
+                        <th className="border border-gray-200 p-2 text-sm max-w-[60px]">Remarks</th> {/* Add Remarks header */}
                         <th></th>
                     </tr>
                 </thead>
@@ -266,10 +271,15 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                             <td className="border border-gray-200 text-center text-sm max-w-[100px]">{itm.invoice_no}</td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{new Date(itm.invoice_date).toLocaleDateString('en-GB')}</td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.amount}</td>
-                            {itm.itemsInfo.map((itemInfo, i) => (
-                                <td key={i} className="border border-gray-200 text-center text-sm max-w-[40px]">{itemInfo.qty}</td>
-                            ))}
+                            {items.map((itx,i)=>{
+                                let itmx = itm.itemsInfo.find(ittx => ittx.name.toLowerCase() == itx.name.toLowerCase()); 
+                                return(
+                                    <td key={i} className="border border-gray-200 text-center text-sm max-w-[40px]">{itmx ? itmx.qty : '0'}</td>
+                                );
+                            })}
+
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.weight}</td>
+                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.remarks}</td> {/* Display remarks */}
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                                 <IconButton onClick={() => removeItem(index)}>
                                     <XIcon className='h-4 w-4 text-orange-600' />
@@ -328,6 +338,16 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                                 onChange={(e) => setFormItem({ ...formItem, weight: e.target.value })}
                                 className="w-full text-xs  border-none outline-none focus:ring-0 rounded-sm shadow-xs px-2 text-center"
                                 placeholder='Gross Weight'
+                            />
+                        </td>
+                        <td className="border border-gray-200 text-center text-sm max-w-[60px]">
+                            <input type="text"
+                                name="remarks"
+                                id="remarks"
+                                value={formItem.remarks} // Bind remarks input to formItem.remarks
+                                onChange={(e) => setFormItem({ ...formItem, remarks: e.target.value })}
+                                className="w-full text-xs border-none outline-none focus:ring-0 rounded-sm shadow-xs px-2 text-center"
+                                placeholder='Remark'
                             />
                         </td>
                         <td className="border border-gray-200 text-center text-sm max-w-[60px]">

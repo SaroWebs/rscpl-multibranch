@@ -169,8 +169,8 @@ const AddNewItem = (props) => {
                                         const tripDate = new Date(mani.trip_date);
                                         const lastMonth = new Date();
 
-                                        // Set the lastMonth to one month ago from today
-                                        lastMonth.setMonth(lastMonth.getMonth() - 1);
+                                        // Set the lastMonth to one month ago from today (updated 2month)
+                                        lastMonth.setMonth(lastMonth.getMonth() - 2);
 
                                         // Compare tripDate with lastMonth
                                         if (tripDate >= lastMonth) {
