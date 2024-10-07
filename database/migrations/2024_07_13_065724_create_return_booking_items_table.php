@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('return_booking_id')->constrained('return_bookings')->cascadeOnDelete();
             $table->string('invoice_no')->nullable();
             $table->decimal('amount', 10, 2)->default(0);
-            $table->integer('weight')->default(0);
+            $table->decimal('weight', 10, 2)->default(0); 
             $table->timestamps();
         });
     }

@@ -28,27 +28,28 @@ const AddReturn = (props) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         const bookingData = {
-            manifest_id: formInfo.manifest_id,
+            manifest_id: parseInt(formInfo.manifest_id), // Ensure manifest_id is an integer
             cn_no: formInfo.cn_no,
             consignor: formInfo.consignor,
             consignee: formInfo.consignee,
-            amount: processedData.totalAmount,
+            amount: parseFloat(processedData.totalAmount).toFixed(2), // Ensure totalAmount is a float with 2 decimal places
             remarks: formInfo.remarks,
             party_location: formInfo.party_location ? formInfo.party_location : ''
         };
 
         const bookingItemsData = itemList.map(item => ({
             invoice_no: item.invoice_no,
-            amount: item.amount,
-            weight: item.weight,
+            invoice_date: item.invoice_date,
+            amount: parseFloat(item.amount).toFixed(2), // Ensure amount is a float with 2 decimal places
+            weight: parseFloat(item.weight).toFixed(2), // Ensure weight is a float with 2 decimal places
             itemsInfo: item.itemsInfo.map(itemInfo => ({
                 item_name: itemInfo.name,
-                quantity: itemInfo.qty
+                quantity: parseInt(itemInfo.qty) // Ensure quantity is an integer
             }))
         }));
 
-
-        if (bookingData && bookingItemsData.length > 0) {
+        // Validate totalAmount before submission
+        if (bookingData && bookingItemsData.length > 0 && processedData.totalAmount >= 0) {
             axios.post('/data/return/booking/new', { bookingData, bookingItemsData })
                 .then(res => {
                     reload();
@@ -63,13 +64,16 @@ const AddReturn = (props) => {
                     });
                     setItemList([]);
                     setOpenDialog(false);
+                    toast.current.show({ label: 'Success', severity: 'success', detail: res.data.message });
+                    console.log(res);
                 })
                 .catch(err => {
-                    console.log(err.message);
+                    // Improve error handling
+                    toast.current.show({ label: 'Error', severity: 'error', detail: `Error: ${err.response?.data?.message || err.message}` });
+                    console.log(err.response?.data || err.message);
                 });
         } else {
-            console.log('No booking items data');
-
+            console.log('No booking items data or total amount is zero');
         }
     };
 
@@ -149,7 +153,7 @@ const AddReturn = (props) => {
                                                 className="bg-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2"
                                             />
                                         </div>
-                                       
+
 
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -187,11 +191,11 @@ const AddReturn = (props) => {
                                                 })}
                                             </select>
                                         </div>
-                                        
+
                                     </div>
                                     <hr className='my-8' />
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        
+
                                         <div className="flex flex-col">
                                             <label htmlFor="party_location" className="mb-2 text-xs md:text-sm font-medium text-gray-700">
                                                 Party Location:
@@ -232,9 +236,10 @@ const BookingItems = (props) => {
     const { items, setProcessedData, itemList, setItemList } = props;
     const [formItem, setFormItem] = useState({
         invoice_no: '',
+        invoice_date: '', // Added invoice_date to formItem
         amount: 0,
         itemsInfo: [],
-        weight: 0
+        weight: 0,
     });
 
     const [formOpen, setFormOpen] = useState(false);
@@ -268,36 +273,51 @@ const BookingItems = (props) => {
             ? formItem.itemsInfo.reduce((acc, itemInfo) => acc + parseInt(itemInfo.qty || 0), 0)
             : 0;
 
-        if (!formItem.invoice_no || formQty <= 0) return;
-
-        const inList = itemList.some(il => il.invoice_no === formItem.invoice_no);
-        if (inList) {
-            toast.current.show({ label: 'Error', severity: 'error', detail: 'Please enter another invoice number' });
-            return;
-        }
-
-        try {
-            const res = await axios.post('/data/return/invoice/check', { invoice_no: formItem.invoice_no });
-
-            if (res.data.available) {
-                const newItemList = [...itemList, formItem];
-                setItemList(newItemList);
-                const totalQty = newItemList.reduce((acc, itm) => acc + itm.itemsInfo.reduce((acc2, itemInfo) => acc2 + parseInt(itemInfo.qty || 0), 0), 0);
-                const totalWeight = newItemList.reduce((acc, itm) => acc + parseInt(itm.weight || 0), 0);
-                const totalAmount = newItemList.reduce((acc, itm) => acc + parseInt(itm.amount || 0), 0);
-                setProcessedData({
-                    totalWeight,
-                    totalQty,
-                    totalAmount
-                });
-                reloadForm();
-                setFormOpen(false);
-            } else {
-                toast.current.show({ label: 'Error', severity: 'error', detail: 'Invoice has been already submitted. Please enter another invoice number' });
+        if (!formItem.invoice_no || formItem.invoice_no.length < 3) {
+            formItem.invoice_no = 'NA';
+            const newItemList = [...itemList, formItem];
+            setItemList(newItemList);
+            const totalQty = newItemList.reduce((acc, itm) => acc + itm.itemsInfo.reduce((acc2, itemInfo) => acc2 + parseInt(itemInfo.qty || 0), 0), 0);
+            const totalWeight = newItemList.reduce((acc, itm) => acc + parseInt(itm.weight || 0), 0);
+            const totalAmount = newItemList.reduce((acc, itm) => acc + parseInt(itm.amount || 0), 0);
+            setProcessedData({
+                totalWeight,
+                totalQty,
+                totalAmount
+            });
+            reloadForm();
+            setFormOpen(false);
+        } else {
+            const inList = itemList.some(il => il.invoice_no === formItem.invoice_no);
+            if (inList) {
+                toast.current.show({ label: 'Error', severity: 'error', detail: 'Please enter another invoice number' });
+                return;
             }
-        } catch (err) {
-            toast.current.show({ label: 'Error', severity: 'error', detail: err.message });
+
+            try {
+                const res = await axios.post('/data/return/invoice/check', { invoice_no: formItem.invoice_no });
+
+                if (res.data.available) {
+                    const newItemList = [...itemList, formItem];
+                    setItemList(newItemList);
+                    const totalQty = newItemList.reduce((acc, itm) => acc + itm.itemsInfo.reduce((acc2, itemInfo) => acc2 + parseInt(itemInfo.qty || 0), 0), 0);
+                    const totalWeight = newItemList.reduce((acc, itm) => acc + parseInt(itm.weight || 0), 0);
+                    const totalAmount = newItemList.reduce((acc, itm) => acc + parseInt(itm.amount || 0), 0);
+                    setProcessedData({
+                        totalWeight,
+                        totalQty,
+                        totalAmount
+                    });
+                    reloadForm();
+                    setFormOpen(false);
+                } else {
+                    toast.current.show({ label: 'Error', severity: 'error', detail: 'Invoice has been already submitted. Please enter another invoice number' });
+                }
+            } catch (err) {
+                toast.current.show({ label: 'Error', severity: 'error', detail: err.message });
+            }
         }
+
     };
 
 
@@ -346,7 +366,16 @@ const BookingItems = (props) => {
                                     className="w-full text-xs border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2"
                                 />
                             </div>
-
+                            <div className="flex-1 flex flex-col">
+                                <label htmlFor="inv_date" className="mb-2 text-xs md:text-sm font-medium text-gray-700">Invoice Date:</label>
+                                <input type="date"
+                                    name="invoice_date"
+                                    id="inv_date"
+                                    value={formItem.invoice_date}
+                                    onChange={(e) => setFormItem({ ...formItem, invoice_date: e.target.value })}
+                                    className="w-full text-xs border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2"
+                                />
+                            </div>
                             <div className="flex-1 flex flex-col">
                                 <label htmlFor="inv_amt" className="mb-2 text-xs md:text-sm font-medium text-gray-700">Amount:</label>
                                 <input type="text"
@@ -368,6 +397,8 @@ const BookingItems = (props) => {
                                     className="w-full text-xs border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2"
                                 />
                             </div>
+
+
                         </div>
                         <div className="flex gap-2 flex-wrap">
                             {items && items.length > 0 && items.map((itm, i) => (
@@ -398,6 +429,7 @@ const BookingItems = (props) => {
                 <thead>
                     <tr>
                         <th className="border border-gray-200 p-2">Invoice No</th>
+                        <th className="border border-gray-200 p-2">Invoice Date</th>
                         <th className="border border-gray-200 p-2">Amount</th>
                         {items.map((itm, i) => (
                             <th key={i} className="border border-gray-200 p-2">{itm.name}(Qty)</th>
@@ -410,6 +442,7 @@ const BookingItems = (props) => {
                     {itemList.map((itm, index) => (
                         <tr key={index}>
                             <td className="border border-gray-200 text-center p-2">{itm.invoice_no}</td>
+                            <td className="border border-gray-200 text-center p-2">{itm.invoice_date}</td>
                             <td className="border border-gray-200 text-center p-2">{itm.amount}</td>
                             {itm.itemsInfo.map((itemInfo, i) => (
                                 <td key={i} className="border border-gray-200 text-center p-2">{itemInfo.qty}</td>

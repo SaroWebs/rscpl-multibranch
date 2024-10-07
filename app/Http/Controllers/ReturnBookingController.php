@@ -12,6 +12,7 @@ use App\Models\ReturnBookingItem;
 use App\Models\ReturnItemQuantity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class ReturnBookingController extends Controller
 {
@@ -78,6 +79,21 @@ class ReturnBookingController extends Controller
         }
         return response()->json($return_booking);
     }
+
+    
+    public function print_return_item(ReturnBooking $booking)
+    {
+        $booking->load([
+            'manifest.branch',
+            'manifest.lorry',
+            'consignor.location',
+            'consignee.location',
+            'items.item_quantities'
+        ]);
+        return Inertia::render('Dashboard/Transaction/Booking/Return/PrintItem', [
+            'booking' => $booking
+        ]);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -99,7 +115,7 @@ class ReturnBookingController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'bookingData' => 'required|array',
             'bookingData.manifest_id' => 'required|integer',
             'bookingData.cn_no' => 'required|string',
@@ -107,15 +123,21 @@ class ReturnBookingController extends Controller
             'bookingData.consignee' => 'required|integer',
             'bookingData.amount' => 'required|numeric',
             'bookingData.remarks' => 'nullable|string',
+            'bookingData.party_location' => 'nullable|string',
             'bookingItemsData' => 'required|array',
             'bookingItemsData.*.invoice_no' => 'required|string',
+            'bookingItemsData.*.invoice_date' => 'nullable|date',
             'bookingItemsData.*.amount' => 'required|numeric',
             'bookingItemsData.*.weight' => 'nullable|numeric',
             'bookingItemsData.*.itemsInfo' => 'required|array',
             'bookingItemsData.*.itemsInfo.*.item_name' => 'required|string',
             'bookingItemsData.*.itemsInfo.*.quantity' => 'required|integer',
         ]);
-        // 
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+    
         try {
             DB::beginTransaction();
 
@@ -131,12 +153,12 @@ class ReturnBookingController extends Controller
 
 
             if ($booking) {
-
                 $user = Auth::user();
                 ActivityLog::create([
                     'title' => 'Return booking Stored',
                     'activity' => 'Return consignment (' . $booking->cn_no . ') has been generated.',
                     'user_id' => $user->id,
+                    'branch_id' => $user->branch->id,
                     'created_at' => now()
                 ]);
 
@@ -144,6 +166,7 @@ class ReturnBookingController extends Controller
                     $bookingItem = ReturnBookingItem::create([
                         'return_booking_id' => $booking->id,
                         'invoice_no' => $itemData['invoice_no'],
+                        'invoice_date' => $itemData['invoice_date'],
                         'amount' => $itemData['amount'],
                         'weight' => $itemData['weight'],
                     ]);
@@ -158,13 +181,6 @@ class ReturnBookingController extends Controller
                         }
                     }
                 }
-
-                Tracking::create([
-                    'status' => 'Return booking generated',
-                    'description' => 'Consignment (' . $booking->cn_no . ') has been generated.',
-                    'booking_id' =>  $booking->id,
-                    'created_at' => Carbon::now()
-                ]);
             }
 
 
@@ -173,7 +189,7 @@ class ReturnBookingController extends Controller
             return response()->json(['message' => 'Return booking created successfully'], 201);
         } catch (\Throwable $th) {
             DB::rollback();
-            return response()->json(['error' => $th], 500);
+            return response()->json(['error' => 'An error occurred: ' . $th->getMessage()], 500);
         }
     }
 

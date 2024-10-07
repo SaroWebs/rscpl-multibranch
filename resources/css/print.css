@@ -1,10 +1,15 @@
+:root {
+    --section-height: 50vh; /* Default height */
+}
+
 .section {
-    height: 50vh;
+    height: var(--section-height); /* Use variable for height */
     box-sizing: border-box;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap:1rem;
     padding: 10px;
     page-break-inside: avoid;
 }
@@ -13,7 +18,7 @@
 .section-footer {
     background-color: #fcfcfc;
     padding: 5px;
-    height: 20vh;
+    height: 15vh;
 }
 
 table {
@@ -35,12 +40,16 @@ tbody {
         margin: 0;
         padding: 0;
     }
+    @page {
+        size: A4; /* Set paper size to A4 */
+        scale: 1;
+    }
     .page {
         page-break-after: always;
     }
 
     .section {
-        height: 50vh;
+        height: var(--section-height); /* Use variable for height */
         box-sizing: border-box;
         overflow: hidden;
         display: flex;
@@ -50,11 +59,15 @@ tbody {
         page-break-inside: avoid;
     }
 
-    .section-header,
+    .section-header{
+        background-color: #ffd7d7;
+        padding: 5px;
+        height: 16vh;
+    }
     .section-footer {
         background-color: #ffd7d7;
         padding: 5px;
-        height: 20vh;
+        height: 12vh;
     }
 
     table {

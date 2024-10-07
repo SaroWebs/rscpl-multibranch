@@ -29,7 +29,7 @@ const ReturnList = (props) => {
             <div className="noPrint flex justify-between my-3 mx-5">
                 <h3 className="text-3xl text-slate-600">Return Booking</h3>
                 <div className="flex gap-2">
-                    {privilege > 5 && <AddReturn reload={reload} toast={toast} {...props} />}
+                    {privilege > 5 && <AddReturn {...props} />}
                 </div>
             </div>
             <div className="flex justify-between px-2">
@@ -46,14 +46,14 @@ const ReturnList = (props) => {
                                 <thead>
                                     <tr>
                                         <th className="text-center py-3 px-2">Sl.</th>
-                                        <th className="text-left min-w-[180px]">Manifest</th>
-                                        <th className="text-left min-w-[100px]">CN No.</th>
-                                        <th className="text-left min-w-[120px]">Consignor (Party)</th>
-                                        <th className="text-start min-w-[120px]">Party Location</th>
-                                        <th className="text-left min-w-[120px]">Consignee</th>
-                                        <th className="text-center min-w-[120px]">Quantity</th>
-                                        <th className="text-center min-w-[120px]">Weight (KG)</th>
-                                        <th className="text-center min-w-[100px]">Amount (₹)</th>
+                                        <th className="text-left min-w-[180px]">Mnfst</th>
+                                        <th className="text-left min-w-[100px]">CN</th>
+                                        <th className="text-left min-w-[120px]">Cnsgor</th>
+                                        <th className="text-start min-w-[120px]">Prty Loc</th>
+                                        <th className="text-left min-w-[120px]">Cnsgnee</th>
+                                        <th className="text-center min-w-[120px]">Qty</th>
+                                        <th className="text-center min-w-[120px]">Wt (KG)</th>
+                                        <th className="text-center min-w-[100px]">Amt (₹)</th>
                                         <th></th>
                                     </tr>
                                 </thead>

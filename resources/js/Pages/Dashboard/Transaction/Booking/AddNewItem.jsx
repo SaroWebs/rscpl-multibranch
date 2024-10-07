@@ -208,17 +208,7 @@ const AddNewItem = (props) => {
                                 />
                             </div>
 
-                            {/* <div className="flex flex-col col-span-2">
-                                <label htmlFor="cewb_expires" className="mb-2 text-xs font-medium text-gray-700">CWEB Expires at:</label>
-                                <DatePicker
-                                    selected={formInfo.cewb_expires}
-                                    dateFormat={'dd/MM/YYYY'}
-                                    onChange={(date) => setFormInfo({ ...formInfo, cewb_expires: date })}
-                                    name="cewb_expires" id="cewb_expires"
-                                    isClearable
-                                    className="w-full border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2 text-xs"
-                                />
-                            </div> */}
+                           
 
                             <div className={`col-span-3 flex flex-col `}>
                                 <label htmlFor="consignor" className="mb-2 text-xs font-medium text-gray-700">Consignor:</label>
@@ -360,18 +350,17 @@ const BookingItems = (props) => {
         e.preventDefault();
 
         const formQty = formItem.itemsInfo?.length > 0 ? formItem.itemsInfo.reduce((acc, itemInfo) => acc + parseInt(itemInfo.qty || 0), 0) : 0;
-        if (!formItem.invoice_no) {
-            toast.current.show({ label: 'Error', severity: 'error', detail: 'Enter Invoice Number' });
-            return false
-        };
-
-        const inList = itemList.some(il => il.invoice_no === formItem.invoice_no);
-        if (inList) {
-            toast.current.show({ label: 'Error', severity: 'error', detail: 'Duplicate Invoice entry !' });
-            return false;
+        if (!formItem.invoice_no || formItem.invoice_no.length < 3) {
+            formItem.invoice_no = 'NA';
+        } else {
+            const inList = itemList.some(il => il.invoice_no === formItem.invoice_no);
+            if (inList) {
+                toast.current.show({ label: 'Error', severity: 'error', detail: 'Duplicate Invoice entry !' });
+                return false;
+            }
         }
 
-        if (formItem.amount <= 0) {
+        if (formItem.amount < 0) {
             toast.current.show({ label: 'Error', severity: 'error', detail: 'Enter Amount' });
             return false
         };
@@ -381,7 +370,7 @@ const BookingItems = (props) => {
             return false
         };
 
-        if (formItem.weight <= 0) {
+        if (formItem.weight < 0) {
             toast.current.show({ label: 'Error', severity: 'error', detail: 'Enter weight' });
             return false
         };
