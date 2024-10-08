@@ -35,9 +35,10 @@ const PrintItem = (props) => {
                                 <div className="branch_details">
                                     <h2 className="text-md font-bold uppercase text-gray-800">{branch?.name}</h2>
                                     <p className="text-xs">
-                                        <span className="font-bold mr-4">
+                                        <span className="font-bold">
                                             GSTIN : 18ACVPA9671J1ZV
                                         </span>
+                                        <span className="ml-1 mr-2">,</span>
                                         {branch?.address ?
                                             <span className="font-semibold text-gray-700">
                                                 {branch?.address}
@@ -92,8 +93,10 @@ const PrintItem = (props) => {
                                     :
                                     <div className="">
                                         <h3 className="text-sm font-semibold">Consignee</h3>
-                                        <h5 className="text-xs">{booking.consignee.name + ', ' + booking.consignee.address ? <p className='text-xs'>{'Address: '}<span>{booking.consignee.address}</span></p> : ''}
+                                        <h5 className="text-xs">
+                                            <span>{booking.consignee.name}</span>
                                         </h5>
+                                        {booking.consignee.address ? <p className='text-xs'>{'Address: '}<span>{booking.consignee.address}</span></p> : ''}
                                         <h5 className="text-xs">Destination
                                             {booking.ship_to_party ? " (Party Location) :" : " : "}
                                             {booking.ship_to_party ? booking.party_location : booking.consignee.location?.name}
@@ -132,7 +135,9 @@ const PrintItem = (props) => {
                             </tr>
                         ))}
                         <tr>
-                            <td colSpan={2}></td>
+                            <td className='border-none' colSpan={2}>
+                                Vehicle No: {booking.manifest?.lorry?.lorry_number}
+                            </td>
                             <td>Total: {totalAmount.toFixed(2)}</td>
                             <td colSpan={itemNames.length}>Total Items: {totalQuantities}</td>
                             <td>{totalWeight}</td>
@@ -144,11 +149,7 @@ const PrintItem = (props) => {
 
             <div className={`section-footer ${type == 1 ? 'border-b-2 border-dashed' : ''}`}>
                 <div>
-                    <div className="flex items-start justify-between py-2 text-xs font-bold">
-                        <div className="">
-                            <h3>Vehicle No: {booking.manifest?.lorry?.lorry_number}</h3>
-                        </div>
-                    </div>
+
                     <div className="flex justify-between items-start">
                         <div className="min-w-[250px] min-h-[60px] relative">
                             <h3 className="text-sm font-semibold">{branch ? branch.name : ''}</h3>
@@ -174,21 +175,21 @@ const PrintItem = (props) => {
 
     useEffect(() => {
         if (booking.items.length > 2) {
-            setOpenDialog(true); 
-        }else{
+            setOpenDialog(true);
+        } else {
             initiatePrint();
         }
     }, [booking.items.length]);
 
     useEffect(() => {
-        document.documentElement.style.setProperty('--section-height', options.sectionSize === '0.5' ? '50vh' : '100vh');
+        document.documentElement.style.setProperty('--section-height', options.sectionSize === '0.5' ? '49vh' : '98vh');
     }, [options.sectionSize]);
 
     return (
         <>
             <div id="print-content" className="print-content text-xs">
                 {booking.items && booking.items.length > 0 && booking.items.map((_, i) => {
-                    let ips = 8 * (options.sectionSize == 1 ? 3 : 1);
+                    let ips = 8 * (options.sectionSize == 1 ? 4 : 1);
                     if (i % ips === 0) {
                         const slicedData = booking.items.slice(i, i + ips);
                         return (
