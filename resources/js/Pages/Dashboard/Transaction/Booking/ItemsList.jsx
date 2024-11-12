@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { IconButton, Tooltip } from '@mui/material';
+import { IconButton, Button ,Tooltip } from '@mui/material';
 import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, EyeIcon, ImageIcon, PencilIcon, PrinterIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import React, { useEffect, useState } from 'react'
@@ -12,7 +12,7 @@ import EditBookingItem from './EditBookingItem';
 const ItemsList = (props) => {
     const { bookings, reload, toast, manifests, items, locations, parties } = props;
     const [searchTxt, setSearchTxt] = useState('');
-    const [perPage, setPerPage] = useState(10);
+    const [perPage, setPerPage] = useState(50);
     const [delivCount, setDelivCount] = useState(0);
 
     const [consignorId, setConsignorId] = useState('');
@@ -69,7 +69,7 @@ const ItemsList = (props) => {
             <div className="noPrint flex justify-between my-3 mx-5">
                 <h3 className="text-3xl text-slate-600">Consignments</h3>
                 <div className="flex gap-2">
-                    {privilege > 5 && <AddNewItem reload={reload} toast={toast} {...props} />}
+                    {privilege > 5 && <AddNewItem reload={reload} toast={toast} {...props} manifests={manifests}/>}
                 </div>
             </div>
             <hr className="my-2" />
@@ -181,6 +181,7 @@ const ItemsList = (props) => {
                                                                             locations={locations}
                                                                             parties={parties}
                                                                         />
+                                                                        
                                                                         <Tooltip title="Delete">
                                                                             <IconButton
                                                                                 color="error"

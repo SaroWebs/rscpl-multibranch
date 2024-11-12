@@ -76,13 +76,12 @@ class PagesController extends Controller
     function booking_list()
     {
         $branchId = optional($this->branch)->id;
-        $mani = Manifest::with('lorry')->where('branch_id', $branchId)->get();
+        // $mani = Manifest::with('lorry')->where('branch_id', $branchId)->get();
         $brnchs = Branch::all();
         $items = Item::where('branch_id', $branchId)->get();
         $lr = Lorry::where('branch_id', $branchId)->get();
         $ls = Location::where('branch_id', $branchId)->get();
         return Inertia::render('Dashboard/Transaction/Booking/index', [
-            'manifests' => $mani,
             'branches' => $brnchs,
             'items' => $items,
             'lorries' => $lr,

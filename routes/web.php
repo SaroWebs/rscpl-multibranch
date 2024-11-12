@@ -99,6 +99,7 @@ Route::middleware('auth')->group(function () {
         Route::controller(BookingController::class)->group(function () {
             Route::post('/data/booking/new', 'store');
             Route::put('/data/update/booking/{booking}', 'update');
+            Route::put('/data/booking/update/{booking}', 'update');
             Route::delete('/data/booking/delete/{booking}', 'destroy');
             // status
             Route::post('/transaction/booking/status/{booking}', 'update_status');
@@ -115,7 +116,8 @@ Route::middleware('auth')->group(function () {
         
         Route::controller(ReturnBookingController::class)->group(function () {
             Route::post('/data/return/booking/new', 'store');
-            Route::delete('/data/return/booking/delete/{booking}', 'destroy');
+            Route::delete('/data/return/booking/delete/{returnBooking}', 'destroy');
+            Route::put('/data/return/booking/update/{returnBooking}', 'update');
 
             Route::get('/print/return/booking/{booking}', 'print_return_item');
         });

@@ -65,7 +65,6 @@ const AddReturn = (props) => {
                     setItemList([]);
                     setOpenDialog(false);
                     toast.current.show({ label: 'Success', severity: 'success', detail: res.data.message });
-                    console.log(res);
                 })
                 .catch(err => {
                     // Improve error handling

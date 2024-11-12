@@ -1,12 +1,14 @@
 import { Link } from '@inertiajs/react';
-import { Button } from '@mui/material';
-import { EyeIcon, PrinterIcon } from 'lucide-react';
-import { ConfirmDialog } from 'primereact/confirmdialog';
+import { Button, IconButton, Tooltip } from '@mui/material';
+import { EyeIcon, PrinterIcon, Trash2Icon } from 'lucide-react';
+import { confirmDialog, ConfirmDialog } from 'primereact/confirmdialog';
 import React, { useEffect, useState } from 'react';
 import AddReturn from './AddReturn';
+import EditReturn from './EditReturn';
 
 const ReturnList = (props) => {
-    const { bookings, reload, toast } = props;
+    
+    const { bookings, manifests, parties, reload, toast } = props;
     const [searchTxt, setSearchTxt] = useState('');
     const [perPage, setPerPage] = useState(10);
 
@@ -22,8 +24,29 @@ const ReturnList = (props) => {
         window.open(printUrl, '_blank', 'width=1200,height=1200');
     };
 
-
     const privilege = props.auth.user.role.privilege_index;
+
+    const handleDelete = (booking) => {
+        confirmDialog({
+            message: 'Are you sure you want to delete this booking?',
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptClassName: 'p-button-danger',
+            accept: () => deleteBooking(booking.id),
+        });
+    }
+
+    const deleteBooking = (id) => {
+        axios.delete(`/data/return/booking/delete/${id}`).then(response => {
+            toast.current.show({ severity: 'success', summary: 'Success', detail: 'Return Booking deleted successfully', life: 3000 });
+            reload();
+        }).catch(error => {
+            console.error('Error deleting booking:', error);
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'Failed to delete return booking', life: 3000 });
+        });
+
+    };
+
     return (
         <div className="p-3 md:px-4 md:py-6 flex flex-col gap-2 rounded-md shadow-sm">
             <div className="noPrint flex justify-between my-3 mx-5">
@@ -72,7 +95,7 @@ const ReturnList = (props) => {
                                                 {booking.items.reduce((sum, item) => sum + item.item_quantities.reduce((itemSum, itemInfo) => itemSum + itemInfo.quantity, 0), 0)}
                                             </td>
                                             <td className='text-center'>
-                                                {booking.items.reduce((sum, item) => sum + item.weight, 0)}
+                                                {booking.items.reduce((sum, item) => sum + parseFloat(item.weight), 0)}
                                             </td>
                                             <td className='text-center'>
                                                 {booking.items.reduce((ac, ci) => ac + parseInt(ci.amount), 0)}
@@ -87,6 +110,26 @@ const ReturnList = (props) => {
                                                         aria-label="Print">
                                                         Print
                                                     </Button>
+
+                                                    <EditReturn
+                                                        booking={booking}
+                                                        manifests={manifests}
+                                                        parties={parties}
+                                                        reload={reload}
+                                                        toast={toast}
+                                                        items={props.items}
+                                                    />
+
+                                                    <Tooltip title="Delete">
+                                                        <Button
+                                                            color="error"
+                                                            variant='outlined'
+                                                            onClick={() => handleDelete(booking)}
+                                                            startIcon={<Trash2Icon className='w-4 h-4' />}
+                                                            aria-label="Delete">
+                                                            Delete
+                                                        </Button>
+                                                    </Tooltip>
                                                 </div>
                                             </td>
                                         </tr>

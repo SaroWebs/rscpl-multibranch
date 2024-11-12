@@ -1,22 +1,24 @@
-import { Dialog } from 'primereact/dialog';
-import React, { useEffect, useState } from 'react';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+import { IconButton, Button, Tooltip } from '@mui/material'
 import axios from 'axios';
-import { Button, IconButton, Tooltip } from '@mui/material';
-import { PencilIcon, PlusIcon, XIcon } from 'lucide-react';
+import { PencilIcon, PlusIcon, XIcon } from 'lucide-react'
+import { Dialog } from 'primereact/dialog';
+import React from 'react'
+import { useEffect } from 'react';
+import { useState } from 'react';
+import DatePicker from 'react-datepicker';
 
-const EditBookingItem = ({ booking, reload, toast, items }) => {
+const EditReturn = (props) => {
+    const { booking, manifests, parties, reload, toast, items } = props;
+
     const [openDialog, setOpenDialog] = useState(false);
     const [itemList, setItemList] = useState([]);
+
     const [processedData, setProcessedData] = useState({
         totalWeight: 0,
         totalQty: 0,
         totalAmount: 0
     });
 
-
-    // set processed data
     useEffect(() => {
         if (itemList.length > 0) {
             const totalWeight = itemList.reduce((sum, item) => sum + parseFloat(item.weight || 0), 0);
@@ -29,7 +31,8 @@ const EditBookingItem = ({ booking, reload, toast, items }) => {
                 totalAmount: totalAmount.toFixed(2)
             });
         }
-    }, [itemList]);
+    }, [itemList])
+
 
     useEffect(() => {
         if (booking) {
@@ -46,7 +49,6 @@ const EditBookingItem = ({ booking, reload, toast, items }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
         const bookingItemsData = itemList.map(item => ({
             invoice_no: item.invoice_no,
             invoice_date: item.invoice_date,
@@ -58,34 +60,41 @@ const EditBookingItem = ({ booking, reload, toast, items }) => {
             })),
             remarks: item.remarks
         }));
-
         if (bookingItemsData.length > 0) {
-            axios.put(`/data/booking/update/${booking.id}`, { bookingItemsData })
+            axios.put(`/data/return/booking/update/${booking.id}`, { bookingItemsData })
                 .then(res => {
                     reload();
                     setOpenDialog(false);
                     toast.current.show({ label: 'Success', severity: 'success', detail: 'Booking items updated successfully' });
                 })
                 .catch(err => {
-                    console.error(err.message);
+                    console.log(err.message);
                     toast.current.show({ label: 'Error', severity: 'error', detail: err.message });
                 });
         } else {
             toast.current.show({ label: 'Error', severity: 'error', detail: 'Invalid booking data' });
         }
-    };
+    }
 
     return (
         <>
             <Tooltip title="Edit">
-                <IconButton
+                <Button
                     color="primary"
                     onClick={() => setOpenDialog(true)}
-                    aria-label="Edit">
-                    <PencilIcon className='h-4 w-4' />
-                </IconButton>
+                    aria-label="Edit"
+                    variant='outlined'
+                    startIcon={<PencilIcon className='w-4 h-4' />}
+                >
+                    Edit
+                </Button>
             </Tooltip>
-            <Dialog visible={openDialog} header={'Edit Booking Items'} modal onHide={() => setOpenDialog(false)} className="rounded-md m-4 w-full md:w-2/3 p-4 bg-white">
+            <Dialog visible={openDialog}
+                header={'Edit Return'}
+                modal
+                onHide={() => setOpenDialog(false)}
+                className="rounded-md m-4 w-full md:w-2/3 p-4 bg-white"
+            >
                 <div className="flex flex-col">
                     <div className="mb-4 p-4 bg-gray-100 rounded-md">
                         <h3 className="text-lg font-semibold mb-2">Booking Details</h3>
@@ -101,42 +110,47 @@ const EditBookingItem = ({ booking, reload, toast, items }) => {
                                 <p><span className="font-medium">To:</span> {booking.consignee?.location.name}</p>
                             </div>
                         </div>
-                    </div>
-                    <form onSubmit={handleSubmit} className="space-y-4 p-4">
-                        <BookingItems
-                            items={items}
-                            itemList={itemList}
-                            setItemList={setItemList}
-                            setProcessedData={setProcessedData}
-                            toast={toast}
-                        />
-                        <hr />
-                        {itemList && itemList.length > 0 && (
-                            <>
-                                <div className="flex justify-end items-end flex-col gap-2">
-                                    <div className="border rounded-md pt-0 min-w-[200px] overflow-hidden">
-                                        <h4 className="text-md font-semibold px-4 py-2 bg-gray-700 text-white">Summary</h4>
-                                        <div className="p-4">
-                                            <h6 className='py-0 my-0 text-sm'>Weight: {processedData.totalWeight + ' KG'} </h6>
-                                            <h6 className='py-0 my-0 text-sm'>Quantity: {processedData.totalQty}</h6>
-                                            <h6 className='py-0 my-0 text-sm'>Amount: {'Rs ' + processedData.totalAmount}</h6>
+                        <form onSubmit={handleSubmit} className="space-y-4 p-4">
+                            <BookingItems
+                                items={items}
+                                itemList={itemList}
+                                setItemList={setItemList}
+                                setProcessedData={setProcessedData}
+                                toast={toast}
+                            />
+                            <hr />
+                            {itemList && itemList.length > 0 && (
+                                <>
+                                    <div className="flex justify-end items-end flex-col gap-2">
+                                        <div className="border rounded-md pt-0 min-w-[200px] overflow-hidden">
+                                            <h4 className="text-md font-semibold px-4 py-2 bg-gray-700 text-white">Summary</h4>
+                                            <div className="p-4">
+                                                <h6 className='py-0 my-0 text-sm'>Weight: {processedData.totalWeight + ' KG'} </h6>
+                                                <h6 className='py-0 my-0 text-sm'>Quantity: {processedData.totalQty}</h6>
+                                                <h6 className='py-0 my-0 text-sm'>Amount: {'Rs ' + processedData.totalAmount}</h6>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <button type="submit" className="px-4 py-2 font-semibold text-white bg-teal-500 rounded-md shadow-sm hover:bg-teal-600">
-                                        Update Booking Items
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </form>
+                                        <button type="submit" className="px-4 py-2 font-semibold text-white bg-teal-500 rounded-md shadow-sm hover:bg-teal-600">
+                                            Update Booking Items
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+
+                        </form>
+
+                    </div>
+
                 </div>
             </Dialog>
         </>
-    );
+    )
 }
 
-export default EditBookingItem;
+export default EditReturn;
+
+
 
 const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast }) => {
     const [formItem, setFormItem] = useState({
@@ -180,18 +194,22 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
 
         const formQty = formItem.itemsInfo?.length > 0 ? formItem.itemsInfo.reduce((acc, itemInfo) => acc + parseInt(itemInfo.qty || 0), 0) : 0;
         if (!formItem.invoice_no) {
-            toast.current.show({ label: 'Error', severity: 'error', detail: 'Enter Invoice Number' });
-            return false;
-        }
 
-        const inList = itemList.some(il => il.invoice_no === formItem.invoice_no);
+        }
+        let acceptedNames = ['N/A', 'NA', 'Unavailable', 'Not Applicable', 'None', 'Unknown', '', null];
+
+        const inList = itemList.some(il => (
+            !acceptedNames.includes(formItem.invoice_no) && il.invoice_no === formItem.invoice_no
+        ));
+
         if (inList) {
-            toast.current.show({ label: 'Error', severity: 'error', detail: 'Duplicate Invoice entry !' });
+            toast.current.show({ label: 'Error', severity: 'error', detail: 'Duplicate Invoice entry!' });
             return false;
         }
 
-        if (formItem.amount <= 0) {
-            toast.current.show({ label: 'Error', severity: 'error', detail: 'Enter Amount' });
+
+        if (formItem.amount < 0) {
+            toast.current.show({ label: 'Error', severity: 'error', detail: 'Negative Amount is not accepted' });
             return false;
         }
 
@@ -200,17 +218,32 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
             return false;
         }
 
-        if (formItem.weight <= 0) {
+        if (formItem.weight < 0) {
             toast.current.show({ label: 'Error', severity: 'error', detail: 'Enter weight' });
             return false;
         }
 
         try {
-            const res = await axios.post('/data/invoice/check', { invoice_no: formItem.invoice_no });
-
-            if (res.data.available) {
+            if (formItem.invoice_no.length > 4) {
+                const res = await axios.post('/data/invoice/check', { invoice_no: formItem.invoice_no });
+                if (res.data.available) {
+                    const newItemList = [...itemList, {
+                        ...formItem,
+                        item_quantities: formItem.itemsInfo.map(info => ({
+                            item_name: info.name,
+                            quantity: info.qty
+                        })),
+                    }];
+                    setItemList(newItemList);
+                    updateProcessedData(newItemList);
+                    reloadForm();
+                } else {
+                    toast.current.show({ label: 'Error', severity: 'error', detail: 'Invoice has been already submitted. Please enter another invoice number' });
+                }
+            } else {
                 const newItemList = [...itemList, {
                     ...formItem,
+                    invoice_no: 'NA',
                     item_quantities: formItem.itemsInfo.map(info => ({
                         item_name: info.name,
                         quantity: info.qty
@@ -219,9 +252,8 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                 setItemList(newItemList);
                 updateProcessedData(newItemList);
                 reloadForm();
-            } else {
-                toast.current.show({ label: 'Error', severity: 'error', detail: 'Invoice has been already submitted. Please enter another invoice number' });
             }
+
         } catch (err) {
             toast.current.show({ label: 'Error', severity: 'error', detail: err.message });
         }
@@ -261,7 +293,7 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                             <th key={i} className="border capitalize border-gray-200 p-2 text-sm max-w-[40px]">{itm.name}</th>
                         ))}
                         <th className="border border-gray-200 p-2 text-sm max-w-[60px]">Weight(KG)</th>
-                        <th className="border border-gray-200 p-2 text-sm max-w-[60px]">Remarks</th> {/* Add Remarks header */}
+                        <th className="border border-gray-200 p-2 text-sm max-w-[60px]">Remarks</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -271,16 +303,14 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                             <td className="border border-gray-200 text-center text-sm max-w-[100px]">{itm.invoice_no}</td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{new Date(itm.invoice_date).toLocaleDateString('en-GB')}</td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.amount}</td>
-                            {items.map((itx,i)=>{
-                                let itmx = itm.itemsInfo.find(ittx => ittx.name.toLowerCase() == itx.name.toLowerCase()); 
-                                return(
+                            {items.map((itx, i) => {
+                                let itmx = itm.itemsInfo.find(ittx => ittx.name.toLowerCase() == itx.name.toLowerCase());
+                                return (
                                     <td key={i} className="border border-gray-200 text-center text-sm max-w-[40px]">{itmx ? itmx.qty : '0'}</td>
                                 );
                             })}
-
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.weight}</td>
-                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.remarks}</td> {/* Display remarks */}
-                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">
+                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.remarks}</td>                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                                 <IconButton onClick={() => removeItem(index)}>
                                     <XIcon className='h-4 w-4 text-orange-600' />
                                 </IconButton>
@@ -294,7 +324,10 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                                 name="invoice_no"
                                 id="inv_no"
                                 value={formItem.invoice_no}
-                                onChange={e => setFormItem({ ...formItem, invoice_no: e.target.value })}
+                                onChange={e => {
+                                    let inv_val = e.target.value || 'NA';
+                                    setFormItem({ ...formItem, invoice_no: inv_val })
+                                }}
                                 className="w-full text-xs border-none outline-none focus:ring-0 rounded-sm shadow-xs px-2 text-center"
                                 placeholder='Invoice Number'
                             />

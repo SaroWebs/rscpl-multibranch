@@ -18,8 +18,8 @@ class ManifestController extends Controller
         $branchId = optional($this->branch)->id;
         $privilege = optional($this->role)->privilege_index;
 
-        $perPage = $request->input('per_page', 10);
-        $orderBy = $request->input('order_by', 'trip_date');
+        $perPage = $request->input('per_page', 20);
+        $orderBy = $request->input('order_by', 'created_at');
         $order = $request->input('order', 'desc');
         $query = Manifest::query();
 
@@ -106,6 +106,7 @@ class ManifestController extends Controller
     private function generateManifestNumber()
     {
         $branchId = optional($this->branch)->id;
+
         $latestManifest = Manifest::whereDate('created_at', now()->toDateString())
             ->where('branch_id', $branchId)
             ->orderBy('created_at', 'desc')
@@ -118,10 +119,11 @@ class ManifestController extends Controller
             $newIndex = 1;
         }
 
-        $index = str_pad($newIndex, 4, '0', STR_PAD_LEFT);
-
-        return $index;
+        $index = str_pad($newIndex, 3, '0', STR_PAD_LEFT);
+        $code = now()->format('ymd') . $index;
+        return $code;
     }
+
 
     /**
      * Remove the specified resource from storage.

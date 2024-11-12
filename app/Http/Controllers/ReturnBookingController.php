@@ -214,7 +214,67 @@ class ReturnBookingController extends Controller
      */
     public function update(Request $request, ReturnBooking $returnBooking)
     {
-        //
+        $request->validate([
+            'bookingItemsData' => 'required|array',
+            'bookingItemsData.*.invoice_no' => 'required|string',
+            'bookingItemsData.*.invoice_date' => 'required|date',
+            'bookingItemsData.*.amount' => 'required|numeric',
+            'bookingItemsData.*.weight' => 'nullable|numeric',
+            'bookingItemsData.*.remarks' => 'nullable|string',
+            'bookingItemsData.*.item_quantities' => 'required|array',
+            'bookingItemsData.*.item_quantities.*.item_name' => 'required|string',
+            'bookingItemsData.*.item_quantities.*.quantity' => 'required|integer',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update only the total amount
+            $totalAmount = collect($request->bookingItemsData)->sum('amount');
+            $returnBooking->update([
+                'amount' => $totalAmount,
+            ]);
+
+            // Delete existing booking items and quantities
+            $returnBooking->items()->each(function ($item) {
+                $item->item_quantities()->delete();
+                $item->delete();
+            });
+
+            // Create new booking items and quantities
+            foreach ($request->bookingItemsData as $itemData) {
+                $bookingItem = $returnBooking->items()->create([
+                    'invoice_no' => $itemData['invoice_no'],
+                    'invoice_date' => Carbon::parse($itemData['invoice_date'])->format('Y-m-d'),
+                    'amount' => $itemData['amount'],
+                    'weight' => $itemData['weight'],
+                    'remarks' => $itemData['remarks'],
+                ]);
+
+                foreach ($itemData['item_quantities'] as $itemQuantity) {
+                    $bookingItem->item_quantities()->create([
+                        'item_name' => $itemQuantity['item_name'],
+                        'quantity' => $itemQuantity['quantity'],
+                    ]);
+                }
+            }
+
+            $user = Auth::user();
+            ActivityLog::create([
+                'title' => 'Return Booking Items Updated',
+                'activity' => 'Items for Consignment (CN no : ' . $returnBooking->cn_no . ') have been updated!',
+                'user_id' => $user->id,
+                'branch_id' => $user->branch->id,
+                'created_at' => now()
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Booking items updated successfully'], 200);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['error' => $th->getMessage()], 500);
+        }
     }
 
     /**
@@ -222,6 +282,35 @@ class ReturnBookingController extends Controller
      */
     public function destroy(ReturnBooking $returnBooking)
     {
-        //
+        try {
+            DB::beginTransaction();
+
+
+            // Delete related items and their quantities
+            foreach ($returnBooking->items as $item) {
+                $item->item_quantities()->delete();
+            }
+            $returnBooking->items()->delete();
+
+            // Delete related statuses
+
+            $returnBooking->delete();
+
+            $user = Auth::user();
+            ActivityLog::create([
+                'title' => 'Return Booking Deleted',
+                'activity' => 'Consignment (CN no : ' . $returnBooking->cn_no . ') has been deleted!',
+                'user_id' => $user->id,
+                'branch_id' => $user->branch->id,
+                'created_at' => now()
+            ]);
+
+            DB::commit();
+
+            return response()->json(['message' => 'Return booking deleted successfully'], 200);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            return response()->json(['error' => $th->getMessage()], 500);
+        }
     }
 }

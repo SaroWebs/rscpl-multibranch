@@ -35,9 +35,12 @@ const PrintItem = (props) => {
                                 <div className="branch_details">
                                     <h2 className="text-md font-bold uppercase text-gray-800">{branch?.name}</h2>
                                     <p className="text-xs">
-                                        <span className="font-bold">
-                                            GSTIN : 18ACVPA9671J1ZV
+
+                                        {branch?.gstin ? (
+                                            <span className="font-bold">
+                                            GSTIN : {branch.gstin}
                                         </span>
+                                        ):''}
                                         <span className="ml-1 mr-2">,</span>
                                         {branch?.address ?
                                             <span className="font-semibold text-gray-700">

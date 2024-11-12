@@ -30,7 +30,7 @@ const index = (props) => {
 				setManifests(res.data);
 			})
 			.catch(err => {
-				console.log(err.message);
+				console.error(err.message);
 			})
 			.finally(() => setLoading({ ...loading, manifest: false }));
 	}
@@ -44,7 +44,7 @@ const index = (props) => {
 				setBookings(res.data)
 			})
 			.catch(err => {
-				console.log(err.message);
+				console.error(err.message);
 			})
 			.finally(() => setLoading({ ...loading, booking: false }));
 	}
@@ -58,7 +58,7 @@ const index = (props) => {
 				setReturnList(res.data)
 			})
 			.catch(err => {
-				console.log(err.message);
+				console.error(err.message);
 			})
 			.finally(() => setLoading({ ...loading, return: false }));
 	}
@@ -69,7 +69,7 @@ const index = (props) => {
 				setparties(res.data)
 			})
 			.catch(err => {
-				console.log(err.message);
+				console.error(err.message);
 			});
 	}
 
@@ -104,10 +104,26 @@ const index = (props) => {
 								/>
 							</TabPanel>
 							<TabPanel header="Consignment List">
-								<ItemsList parties={parties} bookings={bookings} reload={loadData} toast={toast} {...props} loading={loading.booking} />
+								<ItemsList 
+									parties={parties} 
+									bookings={bookings} 
+									manifests={manifests?.data || []} 
+									reload={loadData} 
+									toast={toast} 
+									{...props} 
+									loading={loading.booking} 
+									/>
 							</TabPanel>
 							<TabPanel header="Return Consignments">
-								<ReturnList parties={parties} bookings={returnList} reload={loadReturnData} toast={toast} {...props} loading={loading.return} />
+								<ReturnList 
+									parties={parties} 
+									bookings={returnList} 
+									manifests={manifests?.data || []} 
+									reload={loadReturnData} 
+									toast={toast} 
+									{...props} 
+									loading={loading.return}
+									 />
 							</TabPanel>
 						</TabView>
 					</div>

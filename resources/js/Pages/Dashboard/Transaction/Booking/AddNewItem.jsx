@@ -170,7 +170,7 @@ const AddNewItem = (props) => {
                                         const lastMonth = new Date();
 
                                         // Set the lastMonth to one month ago from today (updated 2month)
-                                        lastMonth.setMonth(lastMonth.getMonth() - 2);
+                                        lastMonth.setMonth(lastMonth.getMonth() - 3);
 
                                         // Compare tripDate with lastMonth
                                         if (tripDate >= lastMonth) {
