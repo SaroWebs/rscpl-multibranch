@@ -4,6 +4,7 @@ import { Dialog } from 'primereact/dialog';
 import React, { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import imageCompression from 'browser-image-compression';
 
 const BookingStatus = (props) => {
     const { booking, reload, perPage, searchTxt, status } = props;
@@ -14,6 +15,30 @@ const BookingStatus = (props) => {
         delivery_date: new Date()
     });
     const [imagePreview, setImagePreview] = useState(null);
+
+    const getFileExtensionFromMimeType = (mimeType) => {
+        const mimeExtensions = {
+            'image/jpeg': 'jpg',
+            'image/jpg': 'jpg',
+            'image/png': 'png',
+        };
+        return mimeExtensions[mimeType] || 'jpg';
+    };
+
+    const compressImage = async (file) => {
+        const options = {
+            maxSizeMB: 0.3,
+            maxWidthOrHeight: 600,
+            useWebWorker: true,
+        };
+
+        const compressedBlob = await imageCompression(file, options);
+        const extension = getFileExtensionFromMimeType(file.type);
+        const newFileName = `_.${extension}`;
+
+        const compressedFile = new File([compressedBlob], newFileName, { type: compressedBlob.type });
+        return compressedFile;
+    };
 
     const handleChange = (e) => {
         e.preventDefault();
@@ -33,11 +58,12 @@ const BookingStatus = (props) => {
         });
     }
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (file && (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg')) {
-            setFormInfo({ ...formInfo, image: file });
-            setImagePreview(URL.createObjectURL(file));
+            const compressedImage = await compressImage(file);
+            setFormInfo({ ...formInfo, image: compressedImage });
+            setImagePreview(URL.createObjectURL(compressedImage));
         } else {
             alert('Please select a valid image file (jpg, jpeg, png)');
         }
@@ -65,7 +91,7 @@ const BookingStatus = (props) => {
     }
 
     const removePOD = (id) => {
-        axios.delete(`/data/delete/${id}`).then(res => {
+        axios.delete(`/data/pod/delete/${id}`).then(res => {
             reload({ per_page: perPage, search: searchTxt });
         }).catch(err => {
             console.log(err.message);

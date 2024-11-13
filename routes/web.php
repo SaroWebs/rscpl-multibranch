@@ -210,7 +210,8 @@ Route::controller(FinSessionController::class)->group(function () {
 });
 
 Route::controller(DocumentController::class)->group(function () {
-    Route::delete('/data/delete/{document}', 'destroy');
+    Route::post('/data/pod/change/{document}', 'change');
+    Route::delete('/data/pod/delete/{document}', 'destroy');
 });
 
 Route::controller(BookingItemController::class)->group(function () {

@@ -24,6 +24,7 @@
         "@emotion/styled": "^11.11.5",
         "@mui/material": "^5.15.20",
         "@mui/x-charts": "^7.11.0",
+        "browser-image-compression": "^2.0.2",
         "lucide-react": "^0.394.0",
         "moment": "^2.30.1",
         "primeicons": "^7.0.0",

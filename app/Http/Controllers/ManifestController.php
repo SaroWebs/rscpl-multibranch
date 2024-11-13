@@ -16,7 +16,6 @@ class ManifestController extends Controller
         $active_session = optional($this->fin_session);
 
         $branchId = optional($this->branch)->id;
-        $privilege = optional($this->role)->privilege_index;
 
         $perPage = $request->input('per_page', 20);
         $orderBy = $request->input('order_by', 'created_at');

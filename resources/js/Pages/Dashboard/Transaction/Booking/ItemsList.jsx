@@ -1,18 +1,18 @@
 import { Link } from '@inertiajs/react';
-import { IconButton, Button ,Tooltip } from '@mui/material';
-import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, EyeIcon, ImageIcon, PencilIcon, PrinterIcon, Trash2Icon, XIcon } from 'lucide-react';
+import { IconButton, Button, Tooltip } from '@mui/material';
+import { ChevronDownIcon, ChevronUpIcon, CircleCheckBig, Crosshair, ImageIcon, PencilIcon, PrinterIcon, Trash2Icon, XIcon } from 'lucide-react';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import React, { useEffect, useState } from 'react'
 import AddNewItem from './AddNewItem';
 import BookingStatus from './BookingStatus';
 import { Dialog } from 'primereact/dialog';
 import EditBookingItem from './EditBookingItem';
-
+import imageCompression from 'browser-image-compression';
 
 const ItemsList = (props) => {
     const { bookings, reload, toast, manifests, items, locations, parties } = props;
     const [searchTxt, setSearchTxt] = useState('');
-    const [perPage, setPerPage] = useState(50);
+    const [perPage, setPerPage] = useState(10);
     const [delivCount, setDelivCount] = useState(0);
 
     const [consignorId, setConsignorId] = useState('');
@@ -69,7 +69,7 @@ const ItemsList = (props) => {
             <div className="noPrint flex justify-between my-3 mx-5">
                 <h3 className="text-3xl text-slate-600">Consignments</h3>
                 <div className="flex gap-2">
-                    {privilege > 5 && <AddNewItem reload={reload} toast={toast} {...props} manifests={manifests}/>}
+                    {privilege > 5 && <AddNewItem reload={reload} toast={toast} {...props} manifests={manifests} />}
                 </div>
             </div>
             <hr className="my-2" />
@@ -159,7 +159,7 @@ const ItemsList = (props) => {
 
                                                             {activeStatus && (activeStatus.status == 'delivered') ? (
                                                                 <td className='text-center'>
-                                                                    <DeliveryProof booking={booking} status={activeStatus} />
+                                                                    <DeliveryProof booking={booking} status={activeStatus} reload={reload} />
                                                                 </td>
                                                             ) :
                                                                 <td className='text-center'>
@@ -181,7 +181,7 @@ const ItemsList = (props) => {
                                                                             locations={locations}
                                                                             parties={parties}
                                                                         />
-                                                                        
+
                                                                         <Tooltip title="Delete">
                                                                             <IconButton
                                                                                 color="error"
@@ -265,31 +265,6 @@ const Pagination = ({ bookings, reload, perPage, searchTxt }) => (
     </div>
 );
 
-const DeliveryProof = (props) => {
-    const { booking, status } = props;
-    const [openDialog, setOpenDialog] = useState(false);
-
-    return (
-        <>
-            <button onClick={() => setOpenDialog(true)}>
-                <ImageIcon className="w-6 h-6 text-green-500" />
-            </button>
-            <Dialog visible={openDialog} modal onHide={() => setOpenDialog(false)} className="rounded-md m-4 w-full md:w-1/2 p-4 bg-white">
-                <div className="">
-                    <img
-                        className="w-full border rounded-lg shadow-md"
-                        src={`/storage/${booking.document.file_location}`}
-                        alt=""
-                    />
-                    <hr className='my-4' />
-                    <div className="flex justify-end gap-2">
-                        <Button onClick={() => setOpenDialog(false)} variant="contained" size="small" color="info">Close</Button>
-                    </div>
-                </div>
-            </Dialog>
-        </>
-    )
-}
 
 const FilterBooking = (props) => {
     const { parties, cnr, cne, setCnr, setCne } = props;
@@ -370,4 +345,140 @@ const FilterBooking = (props) => {
             </div>
         </div>
     );
+}
+
+
+
+const DeliveryProof = (props) => {
+    const { booking, reload } = props;
+    const [openDialog, setOpenDialog] = useState(false);
+    const [toChange, setToChange] = useState(false);
+
+    const [imagePreview, setImagePreview] = useState(null);
+    const [image, setImage] = useState('');
+
+    // const handleFileChange = (e) => {
+    //     const file = e.target.files[0];
+    //     if (file && (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg')) {
+    //         setImage(file);
+    //         setImagePreview(URL.createObjectURL(file));
+    //     } else {
+    //         alert('Please select a valid image file (jpg, jpeg, png)');
+    //     }
+    // }
+
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (file && (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg')) {
+            try {
+                const compressedImage = await compressImage(file);
+                setImage(compressedImage);
+                setImagePreview(URL.createObjectURL(compressedImage));
+            } catch (error) {
+                console.error("Image compression error:", error);
+                alert('Failed to compress the image.');
+            }
+        } else {
+            alert('Please select a valid image file (jpg, jpeg, png)');
+        }
+    };
+
+    const getFileExtensionFromMimeType = (mimeType) => {
+        const mimeExtensions = {
+            'image/jpeg': 'jpg',
+            'image/jpg': 'jpg',
+            'image/png': 'png',
+        };
+        return mimeExtensions[mimeType] || 'jpg';
+    };
+
+    const compressImage = async (file) => {
+        const options = {
+            maxSizeMB: 0.3,
+            maxWidthOrHeight: 600,
+            useWebWorker: true,
+        };
+
+        const compressedBlob = await imageCompression(file, options);
+        const extension = getFileExtensionFromMimeType(file.type);
+        const newFileName = `_.${extension}`;
+
+        const compressedFile = new File([compressedBlob], newFileName, { type: compressedBlob.type });
+        return compressedFile;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('image', image);
+        axios.post(`/data/pod/change/${booking.document.id}`, formData)
+            .then(res => {
+                reload();
+                setImage(null);
+                setImagePreview(null);
+                setToChange(false);
+            }).catch(err => {
+                console.log(err.message);
+            });
+    }
+
+
+    return (
+        <>
+            <button onClick={() => setOpenDialog(true)}>
+                <ImageIcon className="w-6 h-6 text-green-500" />
+            </button>
+            <Dialog visible={openDialog} modal onHide={() => setOpenDialog(false)} className="rounded-md m-4 w-full md:w-1/2 p-4 bg-white">
+                {!toChange ?
+                    <div className="">
+                        <img
+                            className="w-full border rounded-lg shadow-md"
+                            src={`/storage/${booking.document.file_location}`}
+                            alt=""
+                        />
+                        <hr className='my-4' />
+                        <div className="flex justify-end gap-2">
+                            <Button onClick={() => setToChange(true)} variant="contained" size="small" color="warning">Change</Button>
+                            <Button onClick={() => setOpenDialog(false)} variant="contained" size="small" color="info">Close</Button>
+                        </div>
+                    </div>
+                    :
+                    <div className="">
+                        <h3 className="text-xl font-bold underline text-gray-500 capitalize">
+                            Upload Document
+                        </h3>
+                        <form className="space-y-4 py-4" onSubmit={handleSubmit} >
+                            <div className="flex flex-col gap-3">
+                                <div className="">
+                                    <label
+                                        htmlFor={`chpod_${booking.id}`}
+                                        className='w-full min-h-[100px] relative border border-dashed border-gray-500 rounded-lg overflow-hidden flex items-center justify-center'
+                                    >
+                                        {imagePreview ? (
+                                            <>
+                                                <img src={imagePreview} alt="Preview" className="max-h-[300px]" />
+                                                <span className="absolute px-2 py-1 text-sm bg-slate-900/90 text-white rounded-md">Change</span>
+                                            </>
+                                        ) : (
+                                            <span>Upload Image</span>
+                                        )}
+                                    </label>
+                                    <input type="file" name="pod" className='hidden' id={`chpod_${booking.id}`} onChange={handleFileChange} />
+                                </div>
+
+                                <div className="flex gap-4 justify-end">
+                                    <button type="button" onClick={() => setToChange(false)} className="px-4 py-2 font-semibold text-white bg-gray-500 rounded-md shadow-sm hover:bg-gray-600">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="px-4 py-2 font-semibold text-white bg-teal-500 rounded-md shadow-sm hover:bg-teal-600">
+                                        Confirm
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </Dialog>
+        </>
+    )
 }
