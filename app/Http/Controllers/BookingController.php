@@ -31,6 +31,7 @@ class BookingController extends Controller
         $consignor_id = $request->input('cnr', '');
         $consignee_id = $request->input('cne', '');
         $search = $request->input('search', '');
+        $status = $request->input('status', '');
 
         $query = Booking::query();
 
@@ -66,6 +67,16 @@ class BookingController extends Controller
                 $q->where('cn_no', 'LIKE', "%{$escapedSearch}%");
             });
         }
+        // status check
+        if(!empty($status)){
+            $query->whereHas('statuses', function ($st) use ($status) {
+                $st->where('active', 1); 
+                if($status != ''){
+                    $st->where('status', $status);
+                }
+            });
+        }
+
 
         $bookings = $query->with([
             'manifest.branch',

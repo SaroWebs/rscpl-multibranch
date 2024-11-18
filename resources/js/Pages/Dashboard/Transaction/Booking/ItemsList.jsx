@@ -14,6 +14,7 @@ const ItemsList = (props) => {
     const [searchTxt, setSearchTxt] = useState('');
     const [perPage, setPerPage] = useState(10);
     const [delivCount, setDelivCount] = useState(0);
+    const [showStatus, setShowStatus] = useState('');
 
     const [consignorId, setConsignorId] = useState('');
     const [consigneeId, setConsigneeId] = useState('');
@@ -22,8 +23,8 @@ const ItemsList = (props) => {
     const handleSearch = (e) => setSearchTxt(e.target.value.replace(/[^a-zA-Z0-9\s]/g, ''));
 
     useEffect(() => {
-        reload({ per_page: perPage, search: searchTxt, cnr: consignorId, cne: consigneeId });
-    }, [perPage, searchTxt, consignorId, consigneeId]);
+        reload({ per_page: perPage, search: searchTxt, cnr: consignorId, cne: consigneeId, status: showStatus });
+    }, [perPage, searchTxt, consignorId, consigneeId, showStatus]);
 
     useEffect(() => {
         if (bookings && bookings.data) {
@@ -85,10 +86,30 @@ const ItemsList = (props) => {
                 </div>
                 <div className="col-span-9">
                     <div className="flex justify-between px-2">
-                        <select value={perPage} onChange={handleLimitChange}>
-                            {[5, 10, 20, 50, 100].map(num => <option key={num} value={num}>{num}</option>)}
-                        </select>
-                        <input type="text" placeholder="Search consignment.. " onChange={handleSearch} />
+                        <div className="flex gap-2">
+                            <div className="flex flex-col">
+                                <label className="text-xs font-semibold text-blue-800" htmlFor="show_limit">Show</label>
+                                <select id={'show_limit'} value={perPage} onChange={handleLimitChange}>
+                                    {[5, 10, 20, 50, 100].map(num => <option key={num} value={num}>{num}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex flex-col">
+                                <label className="text-xs font-semibold text-blue-800" htmlFor="search_input">Search</label>
+                                <input id={'search_input'} type="text" placeholder="Search consignment.. " onChange={handleSearch} />
+                            </div>
+                        </div>
+                        <div className="pr-2">
+                            <div className="flex flex-col">
+                                <label className="text-xs font-semibold text-blue-800" htmlFor="status_filter">Filter Status</label>
+                                <select id={'status_filter'} value={showStatus} onChange={e => setShowStatus(e.target.value)}>
+                                    <option value={''}>All</option>
+                                    <option value={'pending'}>Pending</option>
+                                    <option value={'in_transit'}>In Transit</option>
+                                    <option value={'delivered'}>Delivered</option>
+                                    <option value={'cancelled'}>Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="content px-2 my-4">
@@ -357,15 +378,6 @@ const DeliveryProof = (props) => {
     const [imagePreview, setImagePreview] = useState(null);
     const [image, setImage] = useState('');
 
-    // const handleFileChange = (e) => {
-    //     const file = e.target.files[0];
-    //     if (file && (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg')) {
-    //         setImage(file);
-    //         setImagePreview(URL.createObjectURL(file));
-    //     } else {
-    //         alert('Please select a valid image file (jpg, jpeg, png)');
-    //     }
-    // }
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
