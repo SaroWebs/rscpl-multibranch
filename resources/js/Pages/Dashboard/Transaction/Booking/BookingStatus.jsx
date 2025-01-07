@@ -10,10 +10,12 @@ const BookingStatus = (props) => {
     const { booking, reload, perPage, searchTxt, status } = props;
 
     const [openDialog, setOpenDialog] = useState(false);
+
     const [formInfo, setFormInfo] = useState({
         image: '',
         delivery_date: new Date()
     });
+    
     const [imagePreview, setImagePreview] = useState(null);
 
     const getFileExtensionFromMimeType = (mimeType) => {

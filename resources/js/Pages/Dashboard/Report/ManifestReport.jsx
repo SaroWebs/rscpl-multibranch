@@ -222,7 +222,7 @@ const ExportCSV = (props) => {
                                                     className='hidden'
                                                 />
                                                 <label htmlFor='sameday' className='text-green-700 underline'>
-                                                    {sameDate ? 'Other Date ?': 'Same Date?'}
+                                                    {sameDate ? 'Other Date ?' : 'Same Date?'}
                                                 </label>
                                             </div>
                                         </label>
@@ -293,23 +293,56 @@ const ExportCSV = (props) => {
     )
 }
 
+const getDtStr = (dx) => {
+    const d = new Date(dx);
+    return `${d.getFullYear() % 100}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getDate().toString().padStart(2, '0')}`;
+};
 
-const ExportCSVData = ({ invoices, setOpen }) => {
+const ExportCSVData = ({ invoices, setOpen, outbond = 'Upcountry' }) => {
+    // const uniqueConsignors = Array.from(new Set(invoices.map(inv => inv.booking?.consignor?.name).filter(Boolean)));
+    const getManiWeight = (maniId) => {
+        return invoices
+            .filter(inv => inv.booking?.manifest?.id === maniId)
+            .reduce((total, inv) => total + (inv.weight || 0), 0);
+    };
 
-    const csvData = invoices.map((inv, i) => ({
-        'Sl. No': i + 1,
-        'Vehicle': inv.booking.manifest?.lorry?.lorry_number,
-        'Destination': inv.booking.ship_to_party ? inv.booking.party_location : inv.booking.consignee.location?.name,
-        'Manifest No': inv.booking.manifest?.manifest_no,
-        'Trip Date': new Date(inv.booking.manifest.trip_date).toLocaleDateString('en-GB'),
-        'Dealer Name': inv.booking.consignee?.name,
-        'Invoice': inv.invoice_no,
-        'Invoice Date': new Date(inv.invoice_date).toLocaleDateString('en-GB'),
-        'Total Qty': inv.total,
-        'CN. No': inv.booking.cn_no,
-        'Weight': inv.weight,
-        'Company': textShorten(inv.booking.consignor?.name),
-    }));
+    const csvData = invoices.map((inv, i) => {
+        const qty = inv.item_quantities.reduce((itemSum, itemInfo) => itemSum + itemInfo.quantity, 0)
+        const manifestNo = inv.booking.manifest.manifest_no.length > 4 ? inv.booking.manifest.manifest_no : `${getDtStr(inv.booking.manifest.trip_date)}${inv.booking.manifest.manifest_no}`;
+        
+        let str_x = inv.booking?.consignor?.name;
+        let isJKIL = str_x?.trim().replace(/[.\s]/g, '').toLowerCase().includes('jk');
+        let isCIL = str_x?.trim().replace(/[.\s]/g, '').toLowerCase().includes('cavendish');
+        
+        const manifestWeight = getManiWeight(inv.booking.manifest.id);
+        const claimRatio = (manifestWeight > 0) ? (inv.weight / manifestWeight * 100) : 0;
+        const rate = 1000;
+        return {
+            'Sl': i + 1,
+            'Outbound Type': outbond,
+            'Trip No(Manifest Number)': manifestNo,
+            'Booking(CN) Date': new Date(inv.booking.manifest.trip_date).toLocaleDateString('en-GB'),
+            'Dealer Name': inv.booking.consignee?.name,
+            'Dealer Location': inv.booking.ship_to_party ? inv.booking.party_location : inv.booking.consignee.location?.name,
+            'Destination': inv.booking.manifest.to_location?.name,
+            'Invoice No': inv.invoice_no,
+            'Invoice Date': new Date(inv.invoice_date).toLocaleDateString('en-GB'),
+            'Company': textShorten(inv.booking.consignor?.name),
+            'CN Summary': '',
+            'CN No': inv.booking.cn_no,
+            'Total Qty': qty,
+            'Weight': inv.weight,
+            'Vehicle Type': 'PickUp',
+            'Route': '',
+            'Rate': rate,
+            'Claim Ratio(%)': Number(claimRatio).toFixed(2),
+            'CIL Freight Amt (INR)': isCIL ? (claimRatio * rate) : '',
+            'CIL CN Charges Amt (INR)': '',
+            'JKIL Freight Amt (INR)': isJKIL ? (claimRatio * rate) : '',
+            'JKIL CN Charges Amt (INR)': '',
+            'Total Claimed Amt (INR)': '',
+        };
+    });
 
     return (
         <CSVLink
@@ -322,4 +355,4 @@ const ExportCSVData = ({ invoices, setOpen }) => {
             Export
         </CSVLink>
     );
-}
+};

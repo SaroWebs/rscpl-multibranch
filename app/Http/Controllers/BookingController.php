@@ -93,8 +93,6 @@ class BookingController extends Controller
         return response()->json($bookings);
     }
 
-
-
     public function booking_reports(Request $request)
     {
         $from_date = Carbon::parse($request->from_date)->startOfDay();
@@ -105,11 +103,13 @@ class BookingController extends Controller
 
         $query = $query->whereHas('manifest', function ($m) use ($branchId, $from_date, $to_date) {
             $m->where('branch_id', $branchId);
+
             if ($from_date->format('Y-m-d') == $to_date->format('Y-m-d')) {
                 $m->whereDate('trip_date', $from_date->format('Y-m-d'));
             } else {
                 $m->whereBetween('trip_date', [$from_date, $to_date]);
             }
+            
         })
             ->with(['document', 'statuses', 'manifest.branch', 'manifest.lorry', 'consignor.location', 'consignee.location', 'items.item_quantities'])
             ->get();
@@ -495,7 +495,6 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
-            // Check if the booking is in pending status
             $isPending = $booking->statuses()->count() == 0 || $booking->statuses()->where('active', 1)->where('status', 'pending')->exists();
 
             if (!$isPending) {

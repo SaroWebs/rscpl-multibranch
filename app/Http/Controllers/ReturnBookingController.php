@@ -8,10 +8,12 @@ use App\Models\Tracking;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use App\Models\ReturnBooking;
+use App\Models\ReturnDocument;
 use App\Models\ReturnBookingItem;
 use App\Models\ReturnItemQuantity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ReturnBookingController extends Controller
@@ -63,7 +65,7 @@ class ReturnBookingController extends Controller
         $bookings = $query->whereHas('manifest.branch', function ($q) use ($branchId) {
             $q->where('id', $branchId);
         })
-            ->with(['manifest.branch', 'manifest.lorry', 'consignor.location', 'consignee.location', 'items.item_quantities'])
+            ->with(['manifest.branch', 'manifest.lorry', 'consignor.location', 'consignee.location', 'items.item_quantities','document'])
             ->orderBy($orderBy, $order)
             ->paginate($perPage);
 
@@ -285,7 +287,6 @@ class ReturnBookingController extends Controller
         try {
             DB::beginTransaction();
 
-
             // Delete related items and their quantities
             foreach ($returnBooking->items as $item) {
                 $item->item_quantities()->delete();
@@ -312,5 +313,44 @@ class ReturnBookingController extends Controller
             DB::rollback();
             return response()->json(['error' => $th->getMessage()], 500);
         }
+    }
+
+    public function upload_document(Request $request, ReturnBooking $booking)
+    {
+        $request->validate([
+            'image' => 'required|mimes:jpeg,jpg,png|max:2048',
+        ]);
+
+        $deliv_date = Carbon::parse($request->input('delivery_date'))->toDateString();
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('documents', $filename, 'public'); // Save file to 'storage/app/public/documents'
+
+            $existingDoc = ReturnDocument::where('return_booking_id', $booking->id)->first();
+
+            if ($existingDoc) {
+                Storage::disk('public')->delete($existingDoc->file_location);
+                $existingDoc->file_location = $path;
+                $existingDoc->delivery_date = $deliv_date;
+                $existingDoc->save();
+            } else {
+                $doc = new ReturnDocument;
+                $doc->return_booking_id = $booking->id;
+                $doc->file_location = $path;
+                $doc->delivery_date = $deliv_date;
+                $doc->save();
+            }
+        }
+        $user = Auth::user();
+        ActivityLog::create([
+            'title' => 'Return POD Added',
+            'activity' => 'Document to the Consignment (CN no : ' . $booking->cn_no . ') has been Added !',
+            'user_id' => $user->id,
+            'branch_id' => $user->branch->id,
+            'created_at' => now()
+        ]);
+        return response()->json(['message' => 'Document uploaded and status updated successfully'], 200);
     }
 }
