@@ -70,13 +70,10 @@ Route::middleware('auth')->group(function () {
 
         Route::controller(RateController::class)->group(function () {
             Route::post('/master/data/new/rate', 'store');
-            Route::put('/master/data/rate/{rate}', 'update');
             Route::delete('/master/data/rate/{rate}', 'destroy');
         });
 
         Route::controller(LorryController::class)->group(function () {
-            Route::post('/master/data/new/lorry', 'store');
-            Route::put('/master/data/lorry/{lorry}', 'update');
             Route::delete('/master/data/lorry/{lorry}', 'destroy');
         });
 
@@ -152,12 +149,9 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(RateController::class)->group(function () {
         Route::get('/master/data/rates', 'get_items');
-        Route::get('/master/data/rate/{rate}', 'get_item');
     });
 
     Route::controller(LorryController::class)->group(function () {
-        Route::get('/master/data/lorries', 'get_lorries');
-        Route::get('/master/data/lorry/{lorry}', 'get_lorry');
     });
 
     Route::controller(BranchController::class)->group(function () {
