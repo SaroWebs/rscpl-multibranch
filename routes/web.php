@@ -27,6 +27,10 @@ Route::controller(PagesController::class)->group(function () {
     Route::get('/', 'welcome');
 });
 
+Route::get('/test', function(){
+    return "Test";
+});
+
 Route::get('/linkstorage', function() {
     Artisan::call('storage:link');
     return 'Storage link created successfully.';
