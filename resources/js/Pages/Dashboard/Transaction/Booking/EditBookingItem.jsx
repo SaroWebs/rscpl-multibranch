@@ -271,9 +271,9 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                             <td className="border border-gray-200 text-center text-sm max-w-[100px]">{itm.invoice_no}</td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{new Date(itm.invoice_date).toLocaleDateString('en-GB')}</td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">{itm.amount}</td>
-                            {items.map((itx,i)=>{
-                                let itmx = itm.itemsInfo.find(ittx => ittx.name.toLowerCase() == itx.name.toLowerCase()); 
-                                return(
+                            {items.map((itx, i) => {
+                                let itmx = itm.itemsInfo.find(ittx => ittx.name.toLowerCase() == itx.name.toLowerCase());
+                                return (
                                     <td key={i} className="border border-gray-200 text-center text-sm max-w-[40px]">{itmx ? itmx.qty : '0'}</td>
                                 );
                             })}
@@ -302,7 +302,8 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                         <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                             <DatePicker
                                 selected={formItem.invoice_date}
-                                dateFormat={'dd/MM/YYYY'}
+                                locale="en-IN"
+                                dateFormat="dd/MM/yyyy"
                                 onChange={(date) => setFormItem({ ...formItem, invoice_date: date })}
                                 name="invoice_date"
                                 id="inv_date"

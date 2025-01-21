@@ -159,6 +159,8 @@ const BookingStatus = (props) => {
                                         <label htmlFor="delivery_date" className='text-sm font-semibold'>Delivery Date:</label>
                                         <DatePicker
                                             selected={formInfo.delivery_date}
+                                            locale="en-IN"
+                                            dateFormat="dd/MM/yyyy"
                                             onChange={(date) => setFormInfo({ ...formInfo, delivery_date: date })}
                                             name="delivery_date"
                                             id="delivery_date"
