@@ -20,6 +20,7 @@ use App\Http\Middleware\PrivilegeMiddleware;
 use App\Http\Controllers\FinSessionController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\BookingItemController;
+use App\Http\Controllers\RateController;
 use App\Http\Controllers\ReturnBookingController;
 
 Route::controller(PagesController::class)->group(function () {
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', 'dashboard')->name('dashboard');
         Route::get('/master/item-units', 'item_unit');
         Route::get('/master/locations', 'location_master');
+        Route::get('/master/rates', 'rate_master');
         Route::get('/master/branches', 'branch_master');
         Route::get('/master/parties', 'party_master');
         Route::get('/master/items', 'item_master');
@@ -66,9 +68,12 @@ Route::middleware('auth')->group(function () {
             Route::delete('/master/data/location/{location}', 'destroy');
         });
 
+        Route::controller(RateController::class)->group(function () {
+            Route::post('/master/data/new/rate', 'store');
+            Route::delete('/master/data/rate/{rate}', 'destroy');
+        });
+
         Route::controller(LorryController::class)->group(function () {
-            Route::post('/master/data/new/lorry', 'store');
-            Route::put('/master/data/lorry/{lorry}', 'update');
             Route::delete('/master/data/lorry/{lorry}', 'destroy');
         });
 
@@ -144,9 +149,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/master/data/location/{location}', 'get_location');
     });
 
+    Route::controller(RateController::class)->group(function () {
+        Route::get('/master/data/rates', 'get_items');
+    });
+
     Route::controller(LorryController::class)->group(function () {
-        Route::get('/master/data/lorries', 'get_lorries');
-        Route::get('/master/data/lorry/{lorry}', 'get_lorry');
     });
 
     Route::controller(BranchController::class)->group(function () {
