@@ -1,13 +1,14 @@
 import { Link } from '@inertiajs/react';
 import { Button, IconButton, Tooltip } from '@mui/material';
-import { EyeIcon, PrinterIcon, Trash2Icon } from 'lucide-react';
+import { EyeIcon, ImagePlusIcon, PrinterIcon, Trash2Icon } from 'lucide-react';
 import { confirmDialog, ConfirmDialog } from 'primereact/confirmdialog';
 import React, { useEffect, useState } from 'react';
 import AddReturn from './AddReturn';
 import EditReturn from './EditReturn';
+import ReturnPOD from './ReturnPOD';
 
 const ReturnList = (props) => {
-    
+
     const { bookings, manifests, parties, reload, toast } = props;
     const [searchTxt, setSearchTxt] = useState('');
     const [perPage, setPerPage] = useState(10);
@@ -77,6 +78,7 @@ const ReturnList = (props) => {
                                         <th className="text-center min-w-[120px]">Qty</th>
                                         <th className="text-center min-w-[120px]">Wt (KG)</th>
                                         <th className="text-center min-w-[100px]">Amt (₹)</th>
+                                        <th className="text-center min-w-[100px]">POD</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -101,6 +103,15 @@ const ReturnList = (props) => {
                                                 {booking.items.reduce((ac, ci) => ac + parseInt(ci.amount), 0)}
                                             </td>
                                             <td className='text-center'>
+                                                <div className="flex justify-center items-center">
+                                                <ReturnPOD
+                                                    booking={booking}
+                                                    reload={reload}
+                                                    toast={toast}
+                                                />
+                                                </div>
+                                            </td>
+                                            <td className='text-center'>
                                                 <div className="flex gap-2">
                                                     <Button
                                                         color="primary"
@@ -119,6 +130,7 @@ const ReturnList = (props) => {
                                                         toast={toast}
                                                         items={props.items}
                                                     />
+
 
                                                     <Tooltip title="Delete">
                                                         <Button

@@ -10,10 +10,12 @@ const BookingStatus = (props) => {
     const { booking, reload, perPage, searchTxt, status } = props;
 
     const [openDialog, setOpenDialog] = useState(false);
+
     const [formInfo, setFormInfo] = useState({
         image: '',
         delivery_date: new Date()
     });
+    
     const [imagePreview, setImagePreview] = useState(null);
 
     const getFileExtensionFromMimeType = (mimeType) => {
@@ -157,6 +159,8 @@ const BookingStatus = (props) => {
                                         <label htmlFor="delivery_date" className='text-sm font-semibold'>Delivery Date:</label>
                                         <DatePicker
                                             selected={formInfo.delivery_date}
+                                            locale="en-IN"
+                                            dateFormat="dd/MM/yyyy"
                                             onChange={(date) => setFormInfo({ ...formInfo, delivery_date: date })}
                                             name="delivery_date"
                                             id="delivery_date"

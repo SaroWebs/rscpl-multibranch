@@ -335,7 +335,8 @@ const BookingItems = ({ items, itemList, setItemList, setProcessedData, toast })
                         <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                             <DatePicker
                                 selected={formItem.invoice_date}
-                                dateFormat={'dd/MM/YYYY'}
+                                dateFormat={'dd/MM/yyyy'}
+                                locale="en-IN"
                                 onChange={(date) => setFormItem({ ...formItem, invoice_date: date })}
                                 name="invoice_date"
                                 id="inv_date"

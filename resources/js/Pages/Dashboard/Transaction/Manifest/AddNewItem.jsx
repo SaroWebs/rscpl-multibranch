@@ -1,6 +1,6 @@
 import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -55,7 +55,7 @@ const AddNewItem = (props) => {
                             <label htmlFor="trip_date" className="mb-2 text-xs md:text-sm font-medium text-gray-700">Trip Date:</label>
                             <DatePicker
                                 selected={formInfo.trip_date}
-                                dateFormat={'dd/MM/YYYY'}
+                                dateFormat={'dd/MM/yyyy'}
                                 onChange={(date) => setFormInfo({ ...formInfo, trip_date: date })}
                                 name="trip_date" id="trip_date"
                                 className="w-full border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm shadow-xs px-2"

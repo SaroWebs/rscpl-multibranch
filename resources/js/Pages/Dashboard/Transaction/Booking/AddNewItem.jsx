@@ -440,7 +440,9 @@ const BookingItems = (props) => {
                     {itemList.map((itm, index) => (
                         <tr key={index}>
                             <td className="border border-gray-200 text-center text-sm max-w-[100px]">{itm.invoice_no}</td>
-                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">{new Date(itm.invoice_date).toLocaleDateString('en-GB')}</td>
+                            <td className="border border-gray-200 text-center text-sm max-w-[60px]">
+                                {new Date(itm.invoice_date).toLocaleDateString('en-GB')}
+                            </td>
                             <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                                 {itm.amount}
                             </td>
@@ -477,7 +479,8 @@ const BookingItems = (props) => {
                         <td className="border border-gray-200 text-center text-sm max-w-[60px]">
                             <DatePicker
                                 selected={formItem.invoice_date}
-                                dateFormat={'dd/MM/YYYY'}
+                                locale="en-IN"
+                                dateFormat="dd/MM/yyyy"
                                 onChange={(date) => setFormItem({ ...formItem, invoice_date: date })}
                                 name="invoice_date"
                                 id="inv_date"

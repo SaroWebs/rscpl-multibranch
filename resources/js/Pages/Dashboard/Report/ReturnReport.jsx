@@ -77,7 +77,8 @@ const ReturnReport = (props) => {
                             <label htmlFor="from_date" className="mb-2 text-xs md:text-sm font-medium text-gray-700">From Date:</label>
                             <DatePicker
                                 selected={formInfo.from_date}
-                                dateFormat={'dd/MM/YYYY'}
+                                locale="en-IN"
+                                dateFormat="dd/MM/yyyy"
                                 onChange={(date) => setFormInfo({ ...formInfo, from_date: date })}
                                 name="from_date" id="from_date"
                                 className="w-full border-gray-200 focus:border-gray-500 focus:ring-0 rounded-sm text-xs shadow-xs px-2"
@@ -89,7 +90,8 @@ const ReturnReport = (props) => {
                                 <DatePicker
                                     selected={formInfo.to_date}
                                     minDate={formInfo.from_date}
-                                    dateFormat={'dd/MM/YYYY'}
+                                    locale="en-IN"
+                                    dateFormat="dd/MM/yyyy"
                                     onChange={(date) => setFormInfo({ ...formInfo, to_date: date })}
                                     name="to_date" id="to_date"
                                     className="w-full border-gray-200 focus:border-gray-500 focus:ring-0 text-xs rounded-sm shadow-xs px-2"

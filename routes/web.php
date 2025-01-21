@@ -27,10 +27,10 @@ Route::controller(PagesController::class)->group(function () {
     Route::get('/', 'welcome');
 });
 
-// Route::get('/linkstorage', function() {
-//     Artisan::call('storage:link');
-//     return 'Storage link created successfully.';
-// });
+Route::get('/linkstorage', function() {
+    Artisan::call('storage:link');
+    return 'Storage link created successfully.';
+});
 
 
 // auth routes
@@ -106,13 +106,14 @@ Route::middleware('auth')->group(function () {
             Route::put('/data/update/booking/{booking}', 'update');
             Route::put('/data/booking/update/{booking}', 'update');
             Route::delete('/data/booking/delete/{booking}', 'destroy');
+
             // status
             Route::post('/transaction/booking/status/{booking}', 'update_status');
             Route::post('/transaction/booking/upload_document/{booking}', 'upload_document');
+
             // booking_reports
             Route::post('/data/report/booking', 'booking_reports');
             Route::post('/data/report/return/booking', 'return_booking_reports');
-            // 
             Route::post('/data/report/party_booking', 'party_booking_reports');
 
             // print page
@@ -123,8 +124,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/data/return/booking/new', 'store');
             Route::delete('/data/return/booking/delete/{returnBooking}', 'destroy');
             Route::put('/data/return/booking/update/{returnBooking}', 'update');
-
             Route::get('/print/return/booking/{booking}', 'print_return_item');
+            Route::post('/transaction/return/booking/upload_document/{booking}', 'upload_document');
+
         });
 
         Route::controller(ManifestController::class)->group(function () {
@@ -205,6 +207,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/data/activities', 'get_items');
         Route::get('/data/activities/user/{user}', 'get_user_items');
     });
+
 });
 
 Route::controller(FinSessionController::class)->group(function () {
